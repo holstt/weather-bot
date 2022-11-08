@@ -1,6 +1,8 @@
 # weather-bot
 
-Discord bot giving today's weather forecast every morning. 
+Discord bot that keeps you updated when it is going to rain 🌧
+
+<img src="rainy_forecast_message.png" width=40%>
 
 Weather forecasts are fetched from the [YR API](https://developer.yr.no/). 
 
