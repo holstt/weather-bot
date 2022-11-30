@@ -1,0 +1,12 @@
+
+# Only for building image and dev testing
+
+services:
+  weatherbot:
+    restart: "no"
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    # Mount env file at startup
+    volumes:
+      - ../../dev.env:/app/.env:ro

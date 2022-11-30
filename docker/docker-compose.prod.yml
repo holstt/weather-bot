@@ -1,0 +1,8 @@
+# Use on production server to pull and start bot
+
+services:
+  weatherbot:
+    restart: "always"
+    # Mount env file at startup
+    volumes:
+      - ${ENV_PATH:-../../prod.env}:/app/.env:ro 

@@ -2,6 +2,7 @@ from os import environ as env
 
 
 class AppConfig:
+    # Extract variables from environment.
     def __init__(self) -> None:
         self.ENV = env.get('WB_ENVIRONMENT')
         self.BOT_TOKEN = env.get('BOT_TOKEN')

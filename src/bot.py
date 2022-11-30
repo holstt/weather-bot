@@ -12,7 +12,6 @@ import argparse
 import src.weather_service as weather_service
 from src.utils import to_local_time, to_utc
 
-
 # Not bot resp. XXX: Convert bot to class and pass config instance from main
 ap = argparse.ArgumentParser()
 ap.add_argument("-e", "--env", required=False,
@@ -21,9 +20,10 @@ args = vars(ap.parse_args())
 
 env_path = args["env"]
 if not Path(env_path).exists():
-    print(f"WARNING: No .env file found (path was '{env_path}')")
-    # raise IOError("Missing .env file")
+    # print(f"WARNING: No .env file found (path was '{env_path}')")
+    raise IOError(f"No .env file found (path was '{env_path}')")
 
+# Load environment
 load_dotenv(dotenv_path=args["env"])
 
 config = AppConfig()
@@ -48,8 +48,8 @@ tree = app_commands.CommandTree(client)  # For slash commands
 
 @client.event
 async def on_ready():
-    print("here")
-    # Sync with specific guild to update slash commands instantly XXX: Fix, maybe only in dev?
+
+    # Sync with specified target guild to update slash commands instantly XXX: Fix, maybe only in dev?
     await tree.sync(guild=discord.Object(id=config.TARGET_GUILD_ID))
     ready_msg = f'Bot is online ({client.user})'
     channel = client.get_channel(config.DEV_CHANNEL_ID)
@@ -77,6 +77,7 @@ async def on_ready():
 # Commands  # XXX: Skal i sin egen fil, cogs?
 
 
+# Command for weather forecast
 @tree.command(
     name="weather",
     description="Weather forecast showing only rainy hours",
@@ -109,6 +110,8 @@ async def weather(interaction: discord.Interaction, high_pred: bool = True, lat:
     #     await ctx.send('Not implemented...')
 
     await interaction.response.send_message(embed=embed)
+
+# Creates weather forecast query from specified input
 
 
 def create_query(high_pred, lat, lon):

@@ -1,0 +1,7 @@
+# Base configuration - should always be used.
+# This file is always part of the configuration if
+# the default command is run i.e. docker-compose up
+
+services:
+  weatherbot:
+    image: dokker123/discordbot:weatherbot
