@@ -2,7 +2,7 @@
 
 Discord bot that keeps you updated when it is going to rain 🌧
 
-<img src="rainy_forecast_message.png" width=40%>
+<img src="doc/rainy_forecast_message.png" width=40%>
 
 Weather forecasts are fetched from the [YR API](https://developer.yr.no/).
 
@@ -13,6 +13,12 @@ Features:
 
 ## Local setup
 
+Set up environment config
+
+- Insert Discord bot token and a default lat/lon into `example.env` (see [Using a database](using-a-database-not-implemented) for using a database to store a default coordinate for each guild)
+- Rename the file to `.env`
+  - Or a use a custom name (e.g. `dev.env` or `prod.env`). For a custom named and/or custom path of the .env file, the path should be given as argument when running the bot using the `-e` option e.g. `-e dev.env`
+
 Create environment
 
 ```
@@ -20,33 +26,29 @@ conda create --name weatherbot --file requirements.txt python=3.10
 conda activate weatherbot
 ```
 
-Set up environment config
-
-- Insert Discord bot token and a default lat/lon into `example.env` (see [Using a database](using-a-database-not-implemented) for using a database to store a default coordinate for each guild)
-- Rename the file to `.env`
-  - Or a use a custom name (e.g. `dev.env` or `prod.env`). For a custom named and/or located .env file, the path should be given as argument when running the bot using the `-e` option e.g. `-e dev.env`
-
-Run
+Run bot
 
 ```
 python main.py
 ```
 
-Run with a custom named environment file called `dev.env`
+Run bot with a custom named environment file called `dev.env`
 
 ```
 python main.py -e dev.env
 ```
 
-### Running with docker
+## Running with Docker Compose
 
-The environment file should be placed on host and is mounted into the container. Please modify the path specified under `volumes` in the docker-compose files. You should modify the image name in `docker-compose.yml` such that it links to your own Docker Hub repository.
+Using docker-compose is the easiest way to run the bot. Files for running the bot with docker-compose is placed in the `docker` folder which includes a Dockerfile as well as docker-compose files. 
 
-The following assumes your are in the `docker` folder
+You can rename the image in `docker-compose.yml` to a custom name or such that it links to your own Docker Hub repository if you wish to use the CI/CD pipeline (see below)
+
+The environment file is not copied into the docker image but mounted into the container at run time. As such, it must exist at the path specified under `volumes` in `docker-compose.prod.yml` (for production) and docker-compose.override.yml (for development). Please note, that in `docker-compose.prod.yml` the path can also be specified by setting the $ENV_PATH environment variable. 
+
+The following assumes your are in the `docker` folder:
 
 #### dev
-
-Modify local path of .env file under `volumes` in `docker-compose.override.yml`, then run
 
 ```
 docker-compose up --build
@@ -54,17 +56,17 @@ docker-compose up --build
 
 #### prod
 
-Modify local path of .env file under `volumes` in `docker-compose.prod.yml`. When using the docker-compose file for production, the environemnt path can also be specified by setting $ENV_PATH environment variable. Then run:
-
 ```
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
 ```
 
-### Running the CICD pipeline
+## Running the CICD pipeline
 
-The CICD pipeline will deploy the bot on your server. Please inspect `.github/workflows/deploy.yaml` for the required environment variables that should be set up in your Github repository as well as the assumptions made about the file structure of the repo and server.
+For the pipeline to work, you must create a Docker Hub account.
 
-### Using a database (NOT IMPLEMENTED)
+The Github Actions CICD pipeline deploys the bot on your server automatically every time a commit is made to the `main` branch. Please inspect `.github/workflows/deploy.yaml` for the required environment variables that should be set up in your Github repository as well as the assumptions made about the file structure of the repo and server. 
+
+## Using a database (NOT IMPLEMENTED)
 
 Instead of using static coordinates, it is possible to store a default location for each guild in a database. Add the database credentials in the `.env` file and remember to set `DB_ENABLED=TRUE`.
 
