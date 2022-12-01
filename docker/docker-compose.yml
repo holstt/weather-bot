@@ -1,3 +1,5 @@
+version: "3.8"
+
 # Base configuration - should always be used.
 # This file is always part of the configuration if
 # the default command is run i.e. docker-compose up
