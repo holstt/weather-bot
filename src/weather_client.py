@@ -12,6 +12,7 @@ from src.dto_yr_data_complete import data_complete_from_dict
 client_session = CachedSession(
     expire_after=timedelta(hours=1), cache_control=True)
 
+
 # type: ignore # Identification required by YR
 client_session.headers = {'User-Agent': 'WeatherBot/0.1'}
 

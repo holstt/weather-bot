@@ -49,8 +49,9 @@ tree = app_commands.CommandTree(client)  # For slash commands
 @client.event
 async def on_ready():
 
+    await tree.sync()
     # Sync with specified target guild to update slash commands instantly XXX: Fix, maybe only in dev?
-    await tree.sync(guild=discord.Object(id=config.TARGET_GUILD_ID))
+    # await tree.sync(guild=discord.Object(id=config.TARGET_GUILD_ID))
     ready_msg = f'Bot is online ({client.user})'
     channel = client.get_channel(config.DEV_CHANNEL_ID)
     if not channel:
@@ -82,7 +83,7 @@ async def on_ready():
     name="weather",
     description="Weather forecast showing only rainy hours",
     # Sync with specific guild to update slash commands instantly XXX: Fix, maybe only in dev?
-    guild=discord.Object(id=config.TARGET_GUILD_ID),
+    # guild=discord.Object(id=config.TARGET_GUILD_ID),
 )
 async def weather(interaction: discord.Interaction, high_pred: bool = True, lat: float = 0.0, lon: float = 0.0):
     # Handle if lat/long specified # XXX: Har discord.py ikke bedre løsning på optional params?
@@ -118,6 +119,8 @@ def create_query(high_pred, lat, lon):
     current_time_utc = datetime.now(timezone.utc)  # type: ignore
     current_time_local = to_local_time(current_time_utc, config.TIME_ZONE)
     should_include_next_day = current_time_local.hour >= SHOW_TOMORROW_AFTER_HOUR_LOCAL
+
+    print("Should include next day: " + str(should_include_next_day))
 
     next_day_summary_time_local: datetime = (
         current_time_local + timedelta(days=1)).replace(hour=MORNING_HOUR_LOCAL, minute=0, second=0, microsecond=0)
