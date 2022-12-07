@@ -1,4 +1,7 @@
+
+
 # weather-bot
+[![deploy](https://github.com/roedebaron/weather-bot/actions/workflows/deploy.yaml/badge.svg)](https://github.com/roedebaron/weather-bot/actions/workflows/deploy.yaml)
 
 Discord bot that keeps you updated when it is going to rain 🌧
 
