@@ -93,4 +93,12 @@ docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
 
 ## Remarks
 
--   All requests to the YR API are cached with respect to their individual `Expire` response header to comply with the YR TOS. As such, muliple forecast requests for the same coordinate will only result in a single http request until the response expires (typically 0.5 hour it seems). The cache will be stored as a sqlite db named `http_cache.sqlite` and placed in the root folder.
+-   All requests to the YR API are cached with respect to their individual `Expire` response header to comply with the YR TOS. As such, muliple forecast requests for the same coordinate will only result in a single http request until the response expires (typically 0.5 hour it seems). The cache will be stored as a sqlite db named `http_cache.sqlite` in project root.
+
+## Additional Information
+
+This project uses [pre-commit](https://pre-commit.com/) to run git hooks. The hooks are defined in `.pre-commit-config.yaml` and can be installed by running:
+
+```
+pre-commit install
+```
