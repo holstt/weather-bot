@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "weather-bot"
+version = "0.1.0"
+description = ""
+authors = ["holstt <45661813+holstt@users.noreply.github.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests-cache = "^1.0.1"
+python-dateutil = "^2.8.2"
+python-dotenv = "^1.0.0"
+discord-py = "^2.2.3"
+tzdata = "^2023.3"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.3.0"
+isort = "^5.12.0"
+pyright = "^1.1.308"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+# typeCheckingMode = "strict" 
+typeCheckingMode = "basic" 
+
+# # In strict, but don't show these errors
+# reportUnusedImport = "none"
+# reportUnusedVariable = "none"
+# reportUnusedFunction = "none"
+
+# # Not in strict, but show these errors
+# reportCallInDefaultInitializer = "error"
+# reportImplicitOverride = "error"
+# reportImplicitStringConcatenation = "error"
+# reportPropertyTypeMismatch = "error"
+# reportShadowedImports = "error"
+# reportUninitializedInstanceVariable = "error"
+# reportUnnecessaryTypeIgnoreComment = "error" 	
