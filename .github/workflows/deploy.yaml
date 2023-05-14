@@ -8,65 +8,64 @@ on:
       - "**.md"
       - "docs/**"
 jobs:
-  build:
-    env:
-      DOCKER_BUILDKIT: 1
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v1
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build
-        working-directory: docker
-        run: docker-compose build
-
-      - name: Push images to registry
-        working-directory: docker
-        run: docker-compose push
-
-  deploy:
-    needs:
-      - build # Ensure build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository code
-        uses: actions/checkout@v2
-
-      - name: Copy files from repo to server
-        # working-directory: docker
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
-          source: "./docker"
-          target: "~/weatherbot"
-          # rm: true # Remove target folder bf. copy
-
-      # Pull from registry and run on server via SSH
-      - name: Pull and run on server
-        uses: appleboy/ssh-action@master
+    build-and-push:
         env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME  }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          DOCKER_BUILDKIT: 1
-          ENV_PATH: ../prod.env
-        with:
-          host: ${{ secrets.SSH_HOST  }}
-          username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          fingerprint: ${{ secrets.SSH_FINGERPRINT }}
-          script: |
-            export ENV_PATH
-            cd weatherbot/docker
-            docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_TOKEN}
-            docker-compose pull
-            docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-          envs: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, DOCKER_BUILDKIT, ENV_PATH
+            DOCKER_BUILDKIT: 1
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out repository code
+              uses: actions/checkout@v2
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v1
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Build docker images
+              working-directory: docker
+              run: docker-compose build
+
+            - name: Push docker images to registry
+              working-directory: docker
+              run: docker-compose push
+
+    deploy:
+        needs:
+            - build-and-push # Ensure build stage passed
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check out repository code
+              uses: actions/checkout@v2
+
+            - name: Copy files from repo to server
+              uses: appleboy/scp-action@master
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USERNAME }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+                  source: "./docker"
+                  target: "~/weatherbot"
+                  # rm: true # Remove target folder bf. copy
+
+            # Pull from registry and run on server via SSH
+            - name: Pull and run on server
+              uses: appleboy/ssh-action@master
+              env:
+                  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME  }}
+                  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+                  DOCKER_BUILDKIT: 1
+                  ENV_PATH: ../prod.env
+              with:
+                  host: ${{ secrets.SSH_HOST  }}
+                  username: ${{ secrets.SSH_USERNAME }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+                  script: |
+                      export ENV_PATH
+                      cd weatherbot/docker
+                      docker login -u ${DOCKERHUB_USERNAME} -p ${DOCKERHUB_TOKEN}
+                      docker-compose pull
+                      docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+                  envs: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, DOCKER_BUILDKIT, ENV_PATH
