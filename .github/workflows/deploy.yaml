@@ -1,12 +1,12 @@
 name: deploy
 
 on:
-    push:
-        branches:
-            - "**main**"
-        paths-ignore:
-            - "**.md"
-            - "docs/**"
+  push:
+    branches:
+      - "**main**"
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
 jobs:
     build-and-push:
         env:
