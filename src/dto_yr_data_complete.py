@@ -1,20 +1,10 @@
-# This code parses date/times, so please
-#
-#     pip install python-dateutil
-#
-# To use this code, make sure you
-#
-#     import json
-#
-# and then, to convert JSON from a string, do
-#
-#     result = data_complete_from_dict(json.loads(json_string))
+# pyright: basic
 
 from dataclasses import dataclass
-from typing import List, Any, Dict, Optional, TypeVar, Callable, Type, cast
 from datetime import datetime
-import dateutil.parser
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, cast
 
+import dateutil.parser
 
 T = TypeVar("T")
 
@@ -73,7 +63,7 @@ class Geometry:
     coordinates: List[float]
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Geometry':
+    def from_dict(obj: Any) -> "Geometry":
         assert isinstance(obj, dict)
         type = from_str(obj.get("type"))
         coordinates = from_list(from_float, obj.get("coordinates"))
@@ -114,84 +104,99 @@ class Units:
     wind_speed_percentile_90: str
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Units':
+    def from_dict(obj: Any) -> "Units":
         assert isinstance(obj, dict)
-        air_pressure_at_sea_level = from_str(
-            obj.get("air_pressure_at_sea_level"))
+        air_pressure_at_sea_level = from_str(obj.get("air_pressure_at_sea_level"))
         air_temperature = from_str(obj.get("air_temperature"))
         air_temperature_max = from_str(obj.get("air_temperature_max"))
         air_temperature_min = from_str(obj.get("air_temperature_min"))
         air_temperature_percentile_10 = from_str(
-            obj.get("air_temperature_percentile_10"))
+            obj.get("air_temperature_percentile_10")
+        )
         air_temperature_percentile_90 = from_str(
-            obj.get("air_temperature_percentile_90"))
+            obj.get("air_temperature_percentile_90")
+        )
         cloud_area_fraction = from_str(obj.get("cloud_area_fraction"))
-        cloud_area_fraction_high = from_str(
-            obj.get("cloud_area_fraction_high"))
+        cloud_area_fraction_high = from_str(obj.get("cloud_area_fraction_high"))
         cloud_area_fraction_low = from_str(obj.get("cloud_area_fraction_low"))
-        cloud_area_fraction_medium = from_str(
-            obj.get("cloud_area_fraction_medium"))
+        cloud_area_fraction_medium = from_str(obj.get("cloud_area_fraction_medium"))
         dew_point_temperature = from_str(obj.get("dew_point_temperature"))
         fog_area_fraction = from_str(obj.get("fog_area_fraction"))
         precipitation_amount = from_str(obj.get("precipitation_amount"))
-        precipitation_amount_max = from_str(
-            obj.get("precipitation_amount_max"))
-        precipitation_amount_min = from_str(
-            obj.get("precipitation_amount_min"))
-        probability_of_precipitation = from_str(
-            obj.get("probability_of_precipitation"))
+        precipitation_amount_max = from_str(obj.get("precipitation_amount_max"))
+        precipitation_amount_min = from_str(obj.get("precipitation_amount_min"))
+        probability_of_precipitation = from_str(obj.get("probability_of_precipitation"))
         probability_of_thunder = from_str(obj.get("probability_of_thunder"))
         relative_humidity = from_str(obj.get("relative_humidity"))
         ultraviolet_index_clear_sky = int(
-            from_str(obj.get("ultraviolet_index_clear_sky")))
+            from_str(obj.get("ultraviolet_index_clear_sky"))
+        )
         wind_from_direction = from_str(obj.get("wind_from_direction"))
         wind_speed = from_str(obj.get("wind_speed"))
         wind_speed_of_gust = from_str(obj.get("wind_speed_of_gust"))
-        wind_speed_percentile_10 = from_str(
-            obj.get("wind_speed_percentile_10"))
-        wind_speed_percentile_90 = from_str(
-            obj.get("wind_speed_percentile_90"))
-        return Units(air_pressure_at_sea_level, air_temperature, air_temperature_max, air_temperature_min, air_temperature_percentile_10, air_temperature_percentile_90, cloud_area_fraction, cloud_area_fraction_high, cloud_area_fraction_low, cloud_area_fraction_medium, dew_point_temperature, fog_area_fraction, precipitation_amount, precipitation_amount_max, precipitation_amount_min, probability_of_precipitation, probability_of_thunder, relative_humidity, ultraviolet_index_clear_sky, wind_from_direction, wind_speed, wind_speed_of_gust, wind_speed_percentile_10, wind_speed_percentile_90)
+        wind_speed_percentile_10 = from_str(obj.get("wind_speed_percentile_10"))
+        wind_speed_percentile_90 = from_str(obj.get("wind_speed_percentile_90"))
+        return Units(
+            air_pressure_at_sea_level,
+            air_temperature,
+            air_temperature_max,
+            air_temperature_min,
+            air_temperature_percentile_10,
+            air_temperature_percentile_90,
+            cloud_area_fraction,
+            cloud_area_fraction_high,
+            cloud_area_fraction_low,
+            cloud_area_fraction_medium,
+            dew_point_temperature,
+            fog_area_fraction,
+            precipitation_amount,
+            precipitation_amount_max,
+            precipitation_amount_min,
+            probability_of_precipitation,
+            probability_of_thunder,
+            relative_humidity,
+            ultraviolet_index_clear_sky,
+            wind_from_direction,
+            wind_speed,
+            wind_speed_of_gust,
+            wind_speed_percentile_10,
+            wind_speed_percentile_90,
+        )
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["air_pressure_at_sea_level"] = from_str(
-            self.air_pressure_at_sea_level)
+        result["air_pressure_at_sea_level"] = from_str(self.air_pressure_at_sea_level)
         result["air_temperature"] = from_str(self.air_temperature)
         result["air_temperature_max"] = from_str(self.air_temperature_max)
         result["air_temperature_min"] = from_str(self.air_temperature_min)
         result["air_temperature_percentile_10"] = from_str(
-            self.air_temperature_percentile_10)
+            self.air_temperature_percentile_10
+        )
         result["air_temperature_percentile_90"] = from_str(
-            self.air_temperature_percentile_90)
+            self.air_temperature_percentile_90
+        )
         result["cloud_area_fraction"] = from_str(self.cloud_area_fraction)
-        result["cloud_area_fraction_high"] = from_str(
-            self.cloud_area_fraction_high)
-        result["cloud_area_fraction_low"] = from_str(
-            self.cloud_area_fraction_low)
-        result["cloud_area_fraction_medium"] = from_str(
-            self.cloud_area_fraction_medium)
+        result["cloud_area_fraction_high"] = from_str(self.cloud_area_fraction_high)
+        result["cloud_area_fraction_low"] = from_str(self.cloud_area_fraction_low)
+        result["cloud_area_fraction_medium"] = from_str(self.cloud_area_fraction_medium)
         result["dew_point_temperature"] = from_str(self.dew_point_temperature)
         result["fog_area_fraction"] = from_str(self.fog_area_fraction)
         result["precipitation_amount"] = from_str(self.precipitation_amount)
-        result["precipitation_amount_max"] = from_str(
-            self.precipitation_amount_max)
-        result["precipitation_amount_min"] = from_str(
-            self.precipitation_amount_min)
+        result["precipitation_amount_max"] = from_str(self.precipitation_amount_max)
+        result["precipitation_amount_min"] = from_str(self.precipitation_amount_min)
         result["probability_of_precipitation"] = from_str(
-            self.probability_of_precipitation)
-        result["probability_of_thunder"] = from_str(
-            self.probability_of_thunder)
+            self.probability_of_precipitation
+        )
+        result["probability_of_thunder"] = from_str(self.probability_of_thunder)
         result["relative_humidity"] = from_str(self.relative_humidity)
         result["ultraviolet_index_clear_sky"] = from_str(
-            str(self.ultraviolet_index_clear_sky))
+            str(self.ultraviolet_index_clear_sky)
+        )
         result["wind_from_direction"] = from_str(self.wind_from_direction)
         result["wind_speed"] = from_str(self.wind_speed)
         result["wind_speed_of_gust"] = from_str(self.wind_speed_of_gust)
-        result["wind_speed_percentile_10"] = from_str(
-            self.wind_speed_percentile_10)
-        result["wind_speed_percentile_90"] = from_str(
-            self.wind_speed_percentile_90)
+        result["wind_speed_percentile_10"] = from_str(self.wind_speed_percentile_10)
+        result["wind_speed_percentile_90"] = from_str(self.wind_speed_percentile_90)
         return result
 
 
@@ -201,7 +206,7 @@ class Meta:
     units: Units
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Meta':
+    def from_dict(obj: Any) -> "Meta":
         assert isinstance(obj, dict)
         updated_at = from_datetime(obj.get("updated_at"))
         units = Units.from_dict(obj.get("units"))
@@ -219,7 +224,7 @@ class Instant:
     details: Dict[str, float]
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Instant':
+    def from_dict(obj: Any) -> "Instant":
         assert isinstance(obj, dict)
         details = from_dict(from_float, obj.get("details"))
         return Instant(details)
@@ -235,16 +240,18 @@ class Next12_HoursDetails:
     probability_of_precipitation: float
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Next12_HoursDetails':
+    def from_dict(obj: Any) -> "Next12_HoursDetails":
         assert isinstance(obj, dict)
         probability_of_precipitation = from_float(
-            obj.get("probability_of_precipitation"))
+            obj.get("probability_of_precipitation")
+        )
         return Next12_HoursDetails(probability_of_precipitation)
 
     def to_dict(self) -> dict:
         result: dict = {}
         result["probability_of_precipitation"] = to_float(
-            self.probability_of_precipitation)
+            self.probability_of_precipitation
+        )
         return result
 
 
@@ -254,7 +261,7 @@ class Next12_HoursSummary:
     symbol_confidence: str
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Next12_HoursSummary':
+    def from_dict(obj: Any) -> "Next12_HoursSummary":
         assert isinstance(obj, dict)
         symbol_code = from_str(obj.get("symbol_code"))
         symbol_confidence = from_str(obj.get("symbol_confidence"))
@@ -273,7 +280,7 @@ class Next12_Hours:
     details: Next12_HoursDetails
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Next12_Hours':
+    def from_dict(obj: Any) -> "Next12_Hours":
         assert isinstance(obj, dict)
         summary = Next12_HoursSummary.from_dict(obj.get("summary"))
         details = Next12_HoursDetails.from_dict(obj.get("details"))
@@ -295,29 +302,32 @@ class Next1_HoursDetails:
     probability_of_thunder: float
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Next1_HoursDetails':
+    def from_dict(obj: Any) -> "Next1_HoursDetails":
         assert isinstance(obj, dict)
         precipitation_amount = from_float(obj.get("precipitation_amount"))
-        precipitation_amount_max = from_float(
-            obj.get("precipitation_amount_max"))
-        precipitation_amount_min = from_float(
-            obj.get("precipitation_amount_min"))
+        precipitation_amount_max = from_float(obj.get("precipitation_amount_max"))
+        precipitation_amount_min = from_float(obj.get("precipitation_amount_min"))
         probability_of_precipitation = from_float(
-            obj.get("probability_of_precipitation"))
+            obj.get("probability_of_precipitation")
+        )
         probability_of_thunder = from_float(obj.get("probability_of_thunder"))
-        return Next1_HoursDetails(precipitation_amount, precipitation_amount_max, precipitation_amount_min, probability_of_precipitation, probability_of_thunder)
+        return Next1_HoursDetails(
+            precipitation_amount,
+            precipitation_amount_max,
+            precipitation_amount_min,
+            probability_of_precipitation,
+            probability_of_thunder,
+        )
 
     def to_dict(self) -> dict:
         result: dict = {}
         result["precipitation_amount"] = to_float(self.precipitation_amount)
-        result["precipitation_amount_max"] = to_float(
-            self.precipitation_amount_max)
-        result["precipitation_amount_min"] = to_float(
-            self.precipitation_amount_min)
+        result["precipitation_amount_max"] = to_float(self.precipitation_amount_max)
+        result["precipitation_amount_min"] = to_float(self.precipitation_amount_min)
         result["probability_of_precipitation"] = to_float(
-            self.probability_of_precipitation)
-        result["probability_of_thunder"] = to_float(
-            self.probability_of_thunder)
+            self.probability_of_precipitation
+        )
+        result["probability_of_thunder"] = to_float(self.probability_of_thunder)
         return result
 
 
@@ -326,7 +336,7 @@ class Next1_HoursSummary:
     symbol_code: str
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Next1_HoursSummary':
+    def from_dict(obj: Any) -> "Next1_HoursSummary":
         assert isinstance(obj, dict)
         symbol_code = from_str(obj.get("symbol_code"))
         return Next1_HoursSummary(symbol_code)
@@ -343,7 +353,7 @@ class Next1_Hours:
     details: Next1_HoursDetails
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Next1_Hours':
+    def from_dict(obj: Any) -> "Next1_Hours":
         assert isinstance(obj, dict)
         summary = Next1_HoursSummary.from_dict(obj.get("summary"))
         details = Next1_HoursDetails.from_dict(obj.get("details"))
@@ -366,30 +376,35 @@ class Next6_HoursDetails:
     probability_of_precipitation: float
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Next6_HoursDetails':
+    def from_dict(obj: Any) -> "Next6_HoursDetails":
         assert isinstance(obj, dict)
         air_temperature_max = from_float(obj.get("air_temperature_max"))
         air_temperature_min = from_float(obj.get("air_temperature_min"))
         precipitation_amount = from_float(obj.get("precipitation_amount"))
-        precipitation_amount_max = from_float(
-            obj.get("precipitation_amount_max"))
-        precipitation_amount_min = from_float(
-            obj.get("precipitation_amount_min"))
+        precipitation_amount_max = from_float(obj.get("precipitation_amount_max"))
+        precipitation_amount_min = from_float(obj.get("precipitation_amount_min"))
         probability_of_precipitation = from_float(
-            obj.get("probability_of_precipitation"))
-        return Next6_HoursDetails(air_temperature_max, air_temperature_min, precipitation_amount, precipitation_amount_max, precipitation_amount_min, probability_of_precipitation)
+            obj.get("probability_of_precipitation")
+        )
+        return Next6_HoursDetails(
+            air_temperature_max,
+            air_temperature_min,
+            precipitation_amount,
+            precipitation_amount_max,
+            precipitation_amount_min,
+            probability_of_precipitation,
+        )
 
     def to_dict(self) -> dict:
         result: dict = {}
         result["air_temperature_max"] = to_float(self.air_temperature_max)
         result["air_temperature_min"] = to_float(self.air_temperature_min)
         result["precipitation_amount"] = to_float(self.precipitation_amount)
-        result["precipitation_amount_max"] = to_float(
-            self.precipitation_amount_max)
-        result["precipitation_amount_min"] = to_float(
-            self.precipitation_amount_min)
+        result["precipitation_amount_max"] = to_float(self.precipitation_amount_max)
+        result["precipitation_amount_min"] = to_float(self.precipitation_amount_min)
         result["probability_of_precipitation"] = to_float(
-            self.probability_of_precipitation)
+            self.probability_of_precipitation
+        )
         return result
 
 
@@ -399,7 +414,7 @@ class Next6_Hours:
     details: Next6_HoursDetails
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Next6_Hours':
+    def from_dict(obj: Any) -> "Next6_Hours":
         assert isinstance(obj, dict)
         summary = Next1_HoursSummary.from_dict(obj.get("summary"))
         details = Next6_HoursDetails.from_dict(obj.get("details"))
@@ -420,26 +435,32 @@ class Data:
     next_6__hours: Optional[Next6_Hours] = None
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Data':
+    def from_dict(obj: Any) -> "Data":
         assert isinstance(obj, dict)
         instant = Instant.from_dict(obj.get("instant"))
         next_12__hours = from_union(
-            [Next12_Hours.from_dict, from_none], obj.get("next_12_hours"))
+            [Next12_Hours.from_dict, from_none], obj.get("next_12_hours")
+        )
         next_1__hours = from_union(
-            [Next1_Hours.from_dict, from_none], obj.get("next_1_hours"))
+            [Next1_Hours.from_dict, from_none], obj.get("next_1_hours")
+        )
         next_6__hours = from_union(
-            [Next6_Hours.from_dict, from_none], obj.get("next_6_hours"))
+            [Next6_Hours.from_dict, from_none], obj.get("next_6_hours")
+        )
         return Data(instant, next_12__hours, next_1__hours, next_6__hours)
 
     def to_dict(self) -> dict:
         result: dict = {}
         result["instant"] = to_class(Instant, self.instant)
         result["next_12_hours"] = from_union(
-            [lambda x: to_class(Next12_Hours, x), from_none], self.next_12__hours)
+            [lambda x: to_class(Next12_Hours, x), from_none], self.next_12__hours
+        )
         result["next_1_hours"] = from_union(
-            [lambda x: to_class(Next1_Hours, x), from_none], self.next_1__hours)
+            [lambda x: to_class(Next1_Hours, x), from_none], self.next_1__hours
+        )
         result["next_6_hours"] = from_union(
-            [lambda x: to_class(Next6_Hours, x), from_none], self.next_6__hours)
+            [lambda x: to_class(Next6_Hours, x), from_none], self.next_6__hours
+        )
         return result
 
 
@@ -449,7 +470,7 @@ class Timesery:
     data: Data
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Timesery':
+    def from_dict(obj: Any) -> "Timesery":
         assert isinstance(obj, dict)
         time = from_datetime(obj.get("time"))
         data = Data.from_dict(obj.get("data"))
@@ -468,7 +489,7 @@ class Properties:
     timeseries: List[Timesery]
 
     @staticmethod
-    def from_dict(obj: Any) -> 'Properties':
+    def from_dict(obj: Any) -> "Properties":
         assert isinstance(obj, dict)
         meta = Meta.from_dict(obj.get("meta"))
         timeseries = from_list(Timesery.from_dict, obj.get("timeseries"))
@@ -478,7 +499,8 @@ class Properties:
         result: dict = {}
         result["meta"] = to_class(Meta, self.meta)
         result["timeseries"] = from_list(
-            lambda x: to_class(Timesery, x), self.timeseries)
+            lambda x: to_class(Timesery, x), self.timeseries
+        )
         return result
 
 
@@ -489,7 +511,7 @@ class DataComplete:
     properties: Properties
 
     @staticmethod
-    def from_dict(obj: Any) -> 'DataComplete':
+    def from_dict(obj: Any) -> "DataComplete":
         assert isinstance(obj, dict)
         type = from_str(obj.get("type"))
         geometry = Geometry.from_dict(obj.get("geometry"))
