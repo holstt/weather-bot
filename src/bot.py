@@ -103,7 +103,7 @@ async def weather(
         lon = config.LON
 
     query = create_weather_forecast_query(high_pred, lat, lon)
-    forecast = weather_service.get_forecast(query)
+    forecast = weather_service.get_complete_forecast(query)
     embed = messages.weather_forecast(forecast, config.TIME_ZONE)
 
     # Handle if lat/lon NOT specified

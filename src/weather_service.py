@@ -7,15 +7,16 @@ import src.weather_client as weather_client
 from src.dtos.yr_complete_response import Timesery, YrCompleteResponse
 from src.models import WeatherForecast, WeatherForecastQuery
 from src.utils import to_local_time
+from src.weather_client import WeatherClient
 
 
 # Retrieves rainy forecast.
-def get_forecast(query: WeatherForecastQuery):
-    dto: YrCompleteResponse = weather_client.get_forecast(query.lat, query.lon)
+def get_complete_forecast(query: WeatherForecastQuery):
+    weather_client = WeatherClient()
+    dto: YrCompleteResponse = weather_client.get_complete_forecast(query.lat, query.lon)
 
     # Convert to domain
     model = dto_to_model(dto, query)
-
     return model
 
 
