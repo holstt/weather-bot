@@ -1,7 +1,6 @@
-from datetime import date, datetime, timedelta, timezone
+from datetime import timedelta
 from typing import Any
 
-import dateutil.parser as dparser
 from requests_cache import CachedSession
 
 from src.dto_yr_data_complete import data_complete_from_dict
@@ -11,7 +10,11 @@ from src.dto_yr_data_complete import data_complete_from_dict
 # Create a new session with default values and cache
 # Default to one hour expiration for all requests in this session.
 # Enable cache control to automatically set expiration based on "Expired" response header (usally lt 0.5 hour)
-client_session = CachedSession(expire_after=timedelta(hours=1), cache_control=True)
+client_session = CachedSession(
+    expire_after=timedelta(hours=1),
+    cache_control=True,
+    cache_name="./data/http_cache.sqlite",
+)
 
 
 # Identification required by YR

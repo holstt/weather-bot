@@ -1,9 +1,15 @@
 version: "3.8"
 
-# Base configuration - should always be used.
-# This file is always part of the configuration if
-# the default command is run i.e. docker-compose up
+name: weatherbot
 
 services:
-  weatherbot:
-    image: dokker123/discordbot:weatherbot
+  app:
+    restart: "on-failure:5"
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ${ENV_PATH:-../.env}:/app/.env:ro
+      - ../data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1 

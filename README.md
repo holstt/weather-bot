@@ -79,21 +79,17 @@ Using docker-compose is the easiest way to run the bot.
 cd docker
 ```
 
-The environment file is not copied into the docker image but mounted into the container at run time. As such, it must exist at the path specified under `volumes` in `docker-compose.prod.yml` (for production) and `docker-compose.override.yml` (for development).
+**4. Configure and run the Docker project**
 
--   Please note, that in `docker-compose.prod.yml` the path can also be specified by setting the $ENV_PATH environment variable.
+`docker-compose.yml` expects the environment variables to be mounted from a file named `.env` in the root of the project folder. Set the `ENV_PATH` environment variable if you use a different name or location for the environment file. Then run:
 
 ```
-# Run in Development
-docker-compose up --build
-
-# Run in Production
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
+docker-compose up -d
 ```
 
 ## Remarks
 
--   All requests to the YR API are cached with respect to their individual `Expire` response header to comply with the YR TOS. As such, muliple forecast requests for the same coordinate will only result in a single http request until the response expires (typically 0.5 hour it seems). The cache will be stored as a sqlite db named `http_cache.sqlite` in project root.
+-   All requests to the YR API are cached with respect to their individual `Expire` response header to comply with the YR TOS. As such, muliple forecast requests for the same coordinate will only result in a single http request until the response expires (typically 0.5 hour it seems). The cache will be stored as a sqlite db at `./data/http_cache.sqlite`.
 
 ## Additional Information
 
