@@ -4,27 +4,26 @@ from glob import glob
 import discord
 
 import src.weather_client as weather_client
-from src.dto_yr_data_complete import DataComplete, Timesery
+from src.dtos.yr_complete_response import Timesery, YrCompleteResponse
 from src.models import WeatherForecast, WeatherForecastQuery
 from src.utils import to_local_time
 
 
 # Retrieves rainy forecast.
 def get_forecast(query: WeatherForecastQuery):
-    data: DataComplete = weather_client.get_forecast(query.lat, query.lon)
+    dto: YrCompleteResponse = weather_client.get_forecast(query.lat, query.lon)
 
     # Convert to domain
-
-    model = dto_to_model(data, query)
+    model = dto_to_model(dto, query)
 
     return model
 
 
 # XXX: Rette sted?
 def dto_to_model(
-    weather_data: DataComplete, query: WeatherForecastQuery
+    weather_data: YrCompleteResponse, query: WeatherForecastQuery
 ) -> WeatherForecast:
-    print(query.is_only_high_prob)
+    # print(query.is_only_high_prob)
     # global local_time_zone_val
 
     # Get summary for next 12 hours

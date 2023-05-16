@@ -3,15 +3,20 @@ from typing import Any
 
 from requests_cache import CachedSession
 
-from src.dto_yr_data_complete import data_complete_from_dict
+from src.dtos.yr_complete_response import YrCompleteResponse
 
 # Fetches weather data from the YR API
+# - Full weather forecast for one location, that is, a forecast with several parameters for a nine-day period.
+# - Forecasts in one hour intervals from latest update time (usually every hour) in UTC to 9 days ahead.
+# - Each datapoint contains "instant" weather metrics about the weather for that hour
+# - Each datapoint also contains 1, 6 and 12 hour summary data from the perspective of that hour. Includes symbol code, precipitation,
+
 
 # Create a new session with default values and cache
 # Default to one hour expiration for all requests in this session.
 # Enable cache control to automatically set expiration based on "Expired" response header (usally lt 0.5 hour)
 client_session = CachedSession(
-    expire_after=timedelta(hours=1),
+    expire_after=timedelta(hours=1),  # XXX: Redundant?
     cache_control=True,
     cache_name="./data/http_cache.sqlite",
 )
@@ -33,19 +38,11 @@ def get_forecast(lat: float, lon: float):
     # Throw if not success. # XXX Hvad medtages i exception, response?
     response.raise_for_status()
 
-    # Alt
-    # if response.status_code != 200:
-    #     raise Exception("")
+    # Whether this request was retrieved from cache
+    print(f"Response retrieved from cache: {response.from_cache}")
 
-    # print("Expires specs:")
-    # print("created: " + str(response.created_at))
-    # print("expires: " + str(response.expires))
-    # print("is_expired: " + str(response.is_expired))
-
-    # Check if cached response
-    print(f"Response in cache: {str(response.from_cache)}")
-
+    # Get json and convert to DTO
     json: dict[str, Any] = response.json()
-    data_complete = data_complete_from_dict(json)
+    dto = YrCompleteResponse.from_dict(json)
 
-    return data_complete
+    return dto

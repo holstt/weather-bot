@@ -1,11 +1,8 @@
-###########
-# GENERAL #
-###########
-
+# Custom
 **/.git
 Dockerfile
 
-##### FROM .gitignore 09-11-2022
+##### FROM .gitignore, updated 09-11-2022
 
 # CUSTOM
 *.sqlite

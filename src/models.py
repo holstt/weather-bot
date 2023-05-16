@@ -2,7 +2,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from src.dto_yr_data_complete import Timesery
+from src.dtos.yr_complete_response import Timesery
 
 
 class WeatherForecast:

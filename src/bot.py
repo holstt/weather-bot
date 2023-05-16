@@ -102,7 +102,7 @@ async def weather(
         lat = config.LAT
         lon = config.LON
 
-    query = create_query(high_pred, lat, lon)
+    query = create_weather_forecast_query(high_pred, lat, lon)
     forecast = weather_service.get_forecast(query)
     embed = messages.weather_forecast(forecast, config.TIME_ZONE)
 
@@ -121,7 +121,7 @@ async def weather(
 # Creates weather forecast query from specified input
 
 
-def create_query(high_pred: bool, lat: float, lon: float):
+def create_weather_forecast_query(is_only_high_prob: bool, lat: float, lon: float):
     current_time_utc = datetime.now(timezone.utc)
     current_time_local = to_local_time(current_time_utc, config.TIME_ZONE)
     should_include_next_day = current_time_local.hour >= SHOW_TOMORROW_AFTER_HOUR_LOCAL
@@ -136,7 +136,7 @@ def create_query(high_pred: bool, lat: float, lon: float):
     print("get tomorrow utc: " + str(next_day_summary_time_utc))
 
     query = WeatherForecastQuery(
-        lat, lon, should_include_next_day, next_day_summary_time_utc, high_pred
+        lat, lon, should_include_next_day, next_day_summary_time_utc, is_only_high_prob
     )
 
     return query

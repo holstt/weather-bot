@@ -505,30 +505,15 @@ class Properties:
 
 
 @dataclass
-class DataComplete:
+class YrCompleteResponse:
     type: str
     geometry: Geometry
     properties: Properties
 
     @staticmethod
-    def from_dict(obj: Any) -> "DataComplete":
+    def from_dict(obj: Any) -> "YrCompleteResponse":
         assert isinstance(obj, dict)
         type = from_str(obj.get("type"))
         geometry = Geometry.from_dict(obj.get("geometry"))
         properties = Properties.from_dict(obj.get("properties"))
-        return DataComplete(type, geometry, properties)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        result["type"] = from_str(self.type)
-        result["geometry"] = to_class(Geometry, self.geometry)
-        result["properties"] = to_class(Properties, self.properties)
-        return result
-
-
-def data_complete_from_dict(s: Any) -> DataComplete:
-    return DataComplete.from_dict(s)
-
-
-def data_complete_to_dict(x: DataComplete) -> Any:
-    return to_class(DataComplete, x)
+        return YrCompleteResponse(type, geometry, properties)

@@ -3,7 +3,7 @@ from glob import glob
 
 import discord
 
-from src.dto_yr_data_complete import Timesery
+from src.dtos.yr_complete_response import Timesery
 from src.models import WeatherForecast
 from src.utils import to_local_time
 
