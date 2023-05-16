@@ -2,15 +2,26 @@
 
 [![build](https://github.com/holstt/weather-bot/actions/workflows/build.yaml/badge.svg)](https://github.com/holstt/weather-bot/actions/workflows/build.yaml)
 
-A simple Discord bot that tells you when it's going to rain in your location. With this bot, you'll never have to worry about getting caught in the rain without an umbrella! 🌧
+Discord bot alerting you if it's going to rain tomorrow 🌧
 
 <img src="docs/rainy_forecast_message.png" width=40%>
 
 ## Features
 
--   Reliable weather data from the [YR API](https://developer.yr.no/)
--   Weather updates for any location showing only rainy hours
--   Get notified about rainy weather forecast for today or tomorrow at a custom time every day (NOT IMPLEMENTED)
+-   Daily notification if (and only if) it's going to rain tomorrow including period and precipitation amount. Be prepared for your daily commute and when to plan for outdoor activities! 🏃🚴🤸
+-   Customize the notification to your needs:
+    -   Set preferred time of day for the daily alert
+    -   Specify the exact location for which to retrieve weather data, using latitude and longitude.
+-   Weather data from any location provided by the [YR API](https://developer.yr.no/)
+
+#### Todo:
+
+-   [ ] Command: Show rainy hours for a given period
+-   [ ] Set up weather alerts: Get notified if a weather metric gets above/below a certain threshold within a rolling time window
+    -   Example: Get notified if the temperature drops below 0°C within the next 24 hours
+    -   Example: Get notified about the 3-hour window having the lowest wind speeds within the next 24 hours to help plan the ideal time to go for a bike ride
+-   [ ] Charts: Show detailed weather forecast for a given period as a chart
+-   [ ] Weekly weather forecast: Get a weekly weather forecast with custom highlights to plan for the week ahead
 
 ## Requirements
 
