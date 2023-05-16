@@ -25,19 +25,19 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pyright]
-typeCheckingMode = "strict" 
+typeCheckingMode = "strict"
 
-# In strict, but don't show these errors
+# Modify strict rules
 reportUnusedVariable = "none"
 reportMissingSuperCall = "none"
 reportUnusedFunction = "none"
+reportUnusedImport = "information"
 
-# Not in strict, but show these errors
-reportUnusedImport = "warning"
+# Add to strict rules
 reportCallInDefaultInitializer = "error"
 reportImplicitOverride = "error"
 reportImplicitStringConcatenation = "error"
 reportPropertyTypeMismatch = "error"
 reportShadowedImports = "error"
 reportUninitializedInstanceVariable = "error"
-reportUnnecessaryTypeIgnoreComment = "error" 	
+reportUnnecessaryTypeIgnoreComment = "error"

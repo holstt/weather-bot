@@ -1,6 +1,6 @@
 # weather-bot
 
-[![deploy](https://github.com/holstt/weather-bot/actions/workflows/deploy.yaml/badge.svg)](https://github.com/holstt/weather-bot/actions/workflows/deploy.yaml)
+[![build](https://github.com/holstt/weather-bot/actions/workflows/build.yaml/badge.svg)](https://github.com/holstt/weather-bot/actions/workflows/build.yaml)
 
 A simple Discord bot that tells you when it's going to rain in your location. With this bot, you'll never have to worry about getting caught in the rain without an umbrella! 🌧
 

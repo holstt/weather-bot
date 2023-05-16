@@ -1,0 +1,41 @@
+name: build
+on:
+    push:
+        branches:
+            - "**main**"
+            - "dev"
+        paths-ignore:
+            - "**.md"
+            - "docs/**"
+jobs:
+    build:
+        name: Build
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                  python-version: "3.10"
+                  cache: "pip"
+
+            - run: |
+                  pip install poetry
+                  poetry config virtualenvs.create false
+
+            # Install all deps. for pyright to be able to run type checking
+            - run: poetry install
+
+            # Lint with type checking
+            - run: pyright
+            - run: black --check .
+            - run: isort --check .
+
+            # Ensure docker compose project builds
+            - run: docker compose build
+              working-directory: docker
+              env:
+                  DOCKER_BUILDKIT: 1
