@@ -1,6 +1,6 @@
 import argparse
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import discord
@@ -9,12 +9,7 @@ from dotenv import load_dotenv
 
 import src.messages as messages
 from src.config import AppConfig
-from src.models import (
-    Coordinates,
-    RainyForecastPeriodQuery,
-    RainyWeatherForecastQuery,
-    TimePeriod,
-)
+from src.models import Coordinates, RainyForecastPeriodQuery, TimePeriod
 from src.utils import to_local_time, to_utc
 from src.weather_client import YrWeatherClient
 from src.weather_service import WeatherService
@@ -33,12 +28,6 @@ if not Path(env_path).exists():
 load_dotenv(dotenv_path=args["env"])
 
 config = AppConfig()
-
-
-# XXX: Should be part of configuration
-# Show next day instead of current after X (local time)
-SHOW_TOMORROW_AFTER_HOUR_LOCAL = 20
-MORNING_HOUR_LOCAL = 7
 
 # Set intents
 intents = discord.Intents.default()
@@ -122,92 +111,6 @@ def get_rainy_forecast():
 
 class DiscordCommandException(Exception):
     pass
-
-
-@tree.command(
-    name="weather",
-    description="Weather forecast showing only rainy hours",
-    # Sync with specific guild to update slash commands instantly
-    # guild=discord.Object(id=config.TARGET_GUILD_ID),
-)
-async def weather(
-    interaction: discord.Interaction,
-):
-    current_time = datetime.now(tz=timezone.utc)
-    query = create_weather_forecast_query(
-        config.LAT, config.LON, False, current_time=current_time
-    )
-    client = YrWeatherClient()
-    service = WeatherService(client)
-    forecast = service.get_rainy_forecast(query)
-    embed = messages.rainy_weather_forecast(forecast, config.TIME_ZONE)
-    await interaction.response.send_message(embed=embed)
-
-
-# # Temp. out of business
-# @tree.command(
-#     name="weather",
-#     description="Weather forecast showing only rainy hours",
-#     # Sync with specific guild to update slash commands instantly XXX: Fix, maybe only in dev?
-#     # guild=discord.Object(id=config.TARGET_GUILD_ID),
-# )
-# async def weather(
-#     interaction: discord.Interaction,
-#     high_pred: bool = True,
-#     lat: float = 0.0,
-#     lon: float = 0.0,
-# ):
-#     # Handle if lat/long specified # XXX: Can we require none or both in discord command params?
-#     if (not lat and lon) or (lat and not lon):
-#         await interaction.response.send_message(
-#             "Please specify both latitude and longitude"
-#         )
-#         return
-#     # If none specified, use config
-#     elif not lat and not lon:
-#         lat = config.LAT
-#         lon = config.LON
-
-#     query = create_weather_forecast_query(high_pred, lat, lon)
-#     client = WeatherClient()
-#     service = WeatherService(client)
-#     forecast = service.get_complete_forecast(query)
-#     embed = messages.weather_forecast(forecast, config.TIME_ZONE)
-
-#     await interaction.response.send_message(embed=embed)
-
-
-# Creates weather forecast query from specified input
-def create_weather_forecast_query(
-    lat: float, lon: float, is_high_prob_required: bool, current_time: datetime
-) -> RainyWeatherForecastQuery:
-    include_next_day_from_time = get_next_day_time_if_needed(current_time)
-
-    query = RainyWeatherForecastQuery(
-        lat,
-        lon,
-        current_time,
-        include_next_day_from_time,
-        is_high_prob_required,
-    )
-
-    return query
-
-
-def get_next_day_time_if_needed(current_time: datetime):
-    current_time_local = to_local_time(current_time, config.TIME_ZONE)
-
-    # If late, get entries for the next day also
-    should_include_next_day = current_time_local.hour >= SHOW_TOMORROW_AFTER_HOUR_LOCAL
-    print("Should include next day: " + str(should_include_next_day))
-    if not should_include_next_day:
-        return None
-
-    include_next_day_from_time_local: datetime = (
-        current_time_local + timedelta(days=1)
-    ).replace(hour=MORNING_HOUR_LOCAL, minute=0, second=0, microsecond=0)
-    include_next_day_from_time = to_utc(include_next_day_from_time_local)
-    return include_next_day_from_time
 
 
 def run():

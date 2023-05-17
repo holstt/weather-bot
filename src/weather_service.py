@@ -11,8 +11,6 @@ from src.models import (
     RainyForecastHour,
     RainyForecastPeriod,
     RainyForecastPeriodQuery,
-    RainyWeatherForecast,
-    RainyWeatherForecastQuery,
     TimePeriod,
 )
 from src.weather_client import YrWeatherClient
@@ -106,68 +104,6 @@ class WeatherService:
 
         return rainy_forecasts
 
-    # Retrieves a rainy forecast.
-    def get_rainy_forecast(
-        self, query: RainyWeatherForecastQuery
-    ) -> RainyWeatherForecast:
-        json = self._client.get_complete_forecast(query.lat, query.lon)
-        dto = YrCompleteResponse.from_dict(json)
-
-        # Convert to domain
-        model = self._dto_to_model(dto, query)
-        return model
-
-    def _dto_to_model(
-        self, weather_data: YrCompleteResponse, query: RainyWeatherForecastQuery
-    ) -> RainyWeatherForecast:
-        period_start_time = query.period_start
-        period_end_time = self._get_end_time(
-            period_start_time, has_next_day=bool(query.include_next_day_from_time)
-        )
-        time_period = TimePeriod(period_start_time, period_end_time)
-
-        forecast_symbol = self._get_forecast_symbol(
-            weather_data.properties.timeseries,
-            after_time=query.include_next_day_from_time,
-        )
-
-        rainy_forecasts = self._get_rainy_forecasts(
-            weather_data, query.is_high_prob_required, time_period
-        )
-        forecast_updated_at_utc = weather_data.properties.meta.updated_at
-
-        return RainyWeatherForecast(
-            rainy_forecasts,
-            query.include_next_day_from_time is not None,
-            forecast_symbol,
-            forecast_updated_at_utc,
-        )
-
-    def _get_end_time(self, period_start_time: datetime, has_next_day: bool):
-        # Default to end of day
-        period_end_time = period_start_time.replace(hour=23, minute=59, second=59)
-        if has_next_day:
-            # Bump end time to tomorrow
-            period_end_time = period_end_time + timedelta(days=1)
-        return period_end_time
-
-    def _get_forecast_symbol(
-        self,
-        forecast_time_steps: list[ForecastTimeStep],
-        after_time: datetime | None = None,
-    ):
-        # Find the forecast entry that should be used to determine the general forecast symbol
-        symbol_forecast = forecast_time_steps[0]
-        if after_time:
-            symbol_forecast = self._get_forecast_at_time(
-                after_time,
-                forecast_time_steps,
-            )
-
-        # TODO: Handle if no 12h symbol exists
-        forecast_symbol = symbol_forecast.data.next_12__hours.summary.symbol_code  # type: ignore
-        return forecast_symbol
-
     def _get_forecast_at_time(
         self,
         time: datetime,
@@ -177,35 +113,6 @@ class WeatherService:
             (forecast for forecast in forecasts if forecast.time >= time)
         )
         return symbol_forecast
-
-    def _get_rainy_forecasts(
-        self,
-        weather_data: YrCompleteResponse,
-        is_high_prob_required: bool,
-        time_period: TimePeriod,
-    ) -> list[ForecastTimeStep]:
-        rainy_forecasts: list[ForecastTimeStep] = []
-        for forecast_hour_entry in self._forecasts_within_period(
-            weather_data, time_period
-        ):
-            next_hour_forecast = forecast_hour_entry.data.next_1__hours
-            if not (
-                next_hour_forecast
-                and self._is_rainy_forecast_estimated(next_hour_forecast)
-            ):
-                # Not a valid forecast, skip
-                continue
-
-            # If high probability of rain is required, only include forecasts with rain symbol
-            if is_high_prob_required and not self._is_rainy_forecast_high_prob(
-                next_hour_forecast
-            ):
-                # Not rainy enough, skip
-                continue
-
-            # Forecast is rainy, add to list
-            rainy_forecasts.append(forecast_hour_entry)
-        return rainy_forecasts
 
     def _forecasts_within_period(
         self,

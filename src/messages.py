@@ -7,8 +7,7 @@ import geopy  # type: ignore
 from geopy.geocoders import Nominatim  # type: ignore
 
 from src import utils
-from src.dtos.yr_complete_response import ForecastTimeStep
-from src.models import RainyForecastHour, RainyForecastPeriod, RainyWeatherForecast
+from src.models import RainyForecastHour, RainyForecastPeriod
 
 RAIN_EMOJI = "🌧"
 CLOUD_EMOJI = "☁"
@@ -104,53 +103,6 @@ def _create_rainy_hours_message_simple(
         rainy_hours_message += f"{_rain_symbol_to_emoji(forecast_hour.symbol_code)}"
         rainy_hours_message += "\n"
 
-    return rainy_hours_message
-
-
-# Old version of message:
-def rainy_weather_forecast(
-    forecast: RainyWeatherForecast, time_zone: ZoneInfo
-) -> discord.Embed:
-    updated_at_local = utils.to_local_time(forecast.updated_at_utc, time_zone)
-    forecast_message = None
-    if len(forecast.forecast_hours) > 0:
-        forecast_message = _create_rainy_hours_message(
-            forecast.forecast_hours, time_zone
-        )
-    else:
-        forecast_message = "No rain 😎"
-
-    embed = discord.Embed(
-        title="Weather Forecast",
-        description=f"**{'Tomorrow' if forecast.is_next_day_included else 'Today'}** {forecast.forecast_symbol}\n {forecast_message}",
-        color=0x76CCFA,
-    )
-    embed.set_footer(
-        text=f"Updated at: {updated_at_local.strftime('%Y-%m-%d %H:%M:%S')}\nHH:mm min/med/max mm. (prob)"
-    )
-    return embed
-
-
-def _create_rainy_hours_message(
-    rainy_forecasts: list[ForecastTimeStep], user_time_zone: ZoneInfo
-):
-    # Create message from filtered data
-    seperation_line = "----------------------------\n"
-    rainy_hours_message = seperation_line
-    prev_hour: datetime | None = None
-    for forecast in rainy_forecasts:
-        next_hour_forecast = forecast.data.next_1__hours
-        forecast_time_local = utils.to_local_time(forecast.time, user_time_zone)
-        forecast_time_formatted_str = forecast_time_local.strftime("%H:%M")
-
-        # If this hour entry not immediatly after prev -> insert seperation line
-        if prev_hour and ((prev_hour + timedelta(hours=1)) < forecast.time):
-            rainy_hours_message += seperation_line
-
-        prev_hour = forecast.time
-
-        # Create hour entry line
-        rainy_hours_message += f"**{forecast_time_formatted_str}** {next_hour_forecast.details.precipitation_amount_min}/{next_hour_forecast.details.precipitation_amount}/{next_hour_forecast.details.precipitation_amount_max} ({next_hour_forecast.details.probability_of_precipitation}%) - {next_hour_forecast.summary.symbol_code}  {_rain_symbol_to_emoji(forecast.data.next_1__hours.summary.symbol_code)}\n"  # type: ignore
     return rainy_hours_message
 
 
