@@ -3,13 +3,14 @@ version: "3.8"
 name: weatherbot
 
 services:
-  app:
-    restart: "on-failure:5"
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    volumes:
-      - ${ENV_PATH:-../.env}:/app/.env:ro
-      - ../data:/app/data
-    environment:
-      - PYTHONUNBUFFERED=1 
+    app:
+        restart: "on-failure:5"
+        build:
+            context: ..
+            dockerfile: docker/Dockerfile
+        volumes:
+            - ../data:/app/data
+        env_file:
+            - ${ENV_PATH:-../.env}
+        environment:
+            - PYTHONUNBUFFERED=1

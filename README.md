@@ -49,15 +49,14 @@ The bot is configured using environment variables, which can be specified in a `
 
 `./example.env` provides an example of the required variables. Rename the file to `.env` and edit the values as needed:
 
-```
-# example.env
-BOT_TOKEN=INSERT_BOT_TOKEN # Discord API token
-DEV_CHANNEL_ID=1234578 # Channel to get notified when bot is online
-TARGET_CHANNEL_ID=1234578 # Channel to get notified about weather forecast. Can be the same as DEV_CHANNEL_ID
-LAT=11.11 # Default latitude
-LON=11.11 # Default longitude
-TIME_ZONE=Europe/Berlin # Time zone of guild
-```
+| Environment Variable | Type    | Description                                                                                                                          |
+| -------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `BOT_TOKEN`          | String  | Discord API token                                                                                                                    |
+| `DEV_CHANNEL_ID`     | Integer | Channel to get notified when the bot is online                                                                                       |
+| `TARGET_CHANNEL_ID`  | Integer | Channel to get notified about weather forecasts. Can be the same as `DEV_CHANNEL_ID`                                                 |
+| `LAT`                | Float   | Default latitude                                                                                                                     |
+| `LON`                | Float   | Default longitude                                                                                                                    |
+| `TIME_ZONE`          | String  | IANA time zone of guild. See [this list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for all available time zones. |
 
 ## Running Locally 💻
 
@@ -97,17 +96,19 @@ cd docker
 
 **4. Configure and run the Docker project**
 
-`docker-compose.yml` expects the environment variables to be mounted from a file named `.env` in the root of the project folder. Set the `ENV_PATH` environment variable if you use a different name or location for the environment file. Then run:
+`docker-compose.yml` expects the environment variables to be defined in a file named `.env` located in root of the project folder. Set the `ENV_PATH` environment variable if you use a different name or location for the environment file. Then run:
 
 ```
 docker-compose up -d
 ```
 
-## Remarks
-
--   All requests to the YR API are cached with respect to their individual `Expire` response header to comply with the YR TOS. As such, muliple forecast requests for the same coordinate will only result in a single http request until the response expires (typically 0.5 hour it seems). The cache will be stored as a sqlite db at `./data/http_cache.sqlite`.
-
 ## Additional Information
+
+#### Cache
+
+All requests to the YR API are cached with respect to their individual `Expire` response header to comply with the YR TOS. As such, muliple forecast requests for the same coordinate will only result in a single http request until the response expires (typically 0.5 hour it seems). The cache will be stored as a sqlite db at `./data/http_cache.sqlite`.
+
+#### Git hooks
 
 This project uses [pre-commit](https://pre-commit.com/) to run git hooks. The hooks are defined in `.pre-commit-config.yaml` and can be installed by running:
 

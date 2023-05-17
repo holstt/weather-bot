@@ -8,26 +8,15 @@ from discord import TextChannel, app_commands
 from dotenv import load_dotenv
 
 import src.messages as messages
-from src.config import AppConfig
+from src import config
 from src.models import Coordinates, RainyForecastPeriodQuery, TimePeriod
 from src.utils import to_local_time, to_utc
 from src.weather_client import YrWeatherClient
 from src.weather_service import WeatherService
 
-# Not bot resp. XXX: Convert bot to class and pass config instance from main
-ap = argparse.ArgumentParser()
-ap.add_argument("-e", "--env", required=False, help="Path of .env file", default=".env")
-args = vars(ap.parse_args())
+app_config = config.load_config()
 
-env_path = args["env"]
-if not Path(env_path).exists():
-    # print(f"WARNING: No .env file found (path was '{env_path}')")
-    raise IOError(f"No .env file found (path was '{env_path}')")
-
-# Load environment
-load_dotenv(dotenv_path=args["env"])
-
-config = AppConfig()
+SYNC_SLASH_COMMANDS = False
 
 # Set intents
 intents = discord.Intents.default()
@@ -43,17 +32,18 @@ tree = app_commands.CommandTree(_client)  # For slash commands
 
 @_client.event
 async def on_ready():
-    print("Syncing slash commands...")
-    # await tree.sync() # This takes a while, as it syncs with all guilds
-    # Sync with specified target guild to update slash commands instantly
-    target_channel: discord.TextChannel = _client.get_channel(config.TARGET_CHANNEL_ID)  # type: ignore
-    await tree.sync(guild=discord.Object(id=target_channel.guild.id))
-    print("Slash commands synced")
+    if SYNC_SLASH_COMMANDS:
+        print("Syncing slash commands...")
+        # await tree.sync() # This takes a while, as it syncs with all guilds
+        # Sync with specified target guild to update slash commands instantly
+        target_channel: discord.TextChannel = _client.get_channel(app_config.target_channel_id)  # type: ignore
+        await tree.sync(guild=discord.Object(id=target_channel.guild.id))
+        print("Slash commands synced")
 
     ready_msg = f"Bot is online ({_client.user})"
-    dev_channel: TextChannel = _client.get_channel(config.DEV_CHANNEL_ID)  # type: ignore
+    dev_channel: TextChannel = _client.get_channel(app_config.dev_channel_id)  # type: ignore
     if not dev_channel:
-        raise Exception(f"Dev channel not found (id: {config.DEV_CHANNEL_ID})")
+        raise Exception(f"Dev channel not found (id: {app_config.dev_channel_id})")
 
     print(ready_msg)
     await dev_channel.send(ready_msg)
@@ -68,7 +58,7 @@ async def send_rainy_forecast(channel: discord.TextChannel):
         return
 
     embed = messages.rainy_weather_forecast_daily(
-        forecast, forecast_symbol, config.TIME_ZONE
+        forecast, forecast_symbol, app_config.time_zone
     )
     await channel.send(embed=embed)
     print("Notification sent")
@@ -79,7 +69,7 @@ def get_rainy_forecast():
     service = WeatherService(client)
 
     # Get start of day in local time
-    local_start_of_day = to_local_time(datetime.utcnow(), config.TIME_ZONE).replace(
+    local_start_of_day = to_local_time(datetime.utcnow(), app_config.time_zone).replace(
         hour=0, minute=0, second=0, microsecond=0
     )
     local_start_of_day_tomorrow = local_start_of_day + timedelta(days=1)
@@ -92,7 +82,7 @@ def get_rainy_forecast():
     print(f"Getting rainy forecast for UTC period: {time_period}")
     query = RainyForecastPeriodQuery(
         time_period=time_period,
-        coordinates=Coordinates(lat=config.LAT, lon=config.LON),
+        coordinates=Coordinates(lat=app_config.lat, lon=app_config.lon),
     )
     forecast = service.get_rainy_forecast_new(query)
 
@@ -114,4 +104,4 @@ class DiscordCommandException(Exception):
 
 
 def run():
-    _client.run(config.BOT_TOKEN, log_level=logging.INFO)
+    _client.run(app_config.bot_token, log_level=logging.INFO)
