@@ -1,49 +1,146 @@
-from datetime import datetime, timedelta, timezone
-from glob import glob
+from datetime import datetime, timedelta
+from typing import Any
+from zoneinfo import ZoneInfo
 
 import discord
+import geopy  # type: ignore
+from geopy.geocoders import Nominatim  # type: ignore
 
-from src.dtos.yr_complete_response import Timesery
-from src.models import WeatherForecast
-from src.utils import to_local_time
+from src import utils
+from src.dtos.yr_complete_response import ForecastTimeStep
+from src.models import RainyForecastHour, RainyForecastPeriod, RainyWeatherForecast
 
 RAIN_EMOJI = "🌧"
 CLOUD_EMOJI = "☁"
 SHOWER_EMOJI = "🚿"
 UNKOWN_EMOJI = "❓"
 
-# Create discord embed from weather data
+
+def rainy_weather_forecast_daily(
+    forecast: RainyForecastPeriod, forecast_symbol: str, user_time_zone: ZoneInfo
+) -> discord.Embed:
+    if not forecast.forecast_hours:
+        return discord.Embed(
+            title="Weather Forecast",
+            description="No rain 😎",
+            color=0x76CCFA,
+        )
+
+    geolocator = Nominatim(user_agent="weather-bot")
+    location: geopy.Location = geolocator.reverse(f"{forecast.coordinates.lat}, {forecast.coordinates.lon}")  # type: ignore
+    city: str = _extract_city(location) or "Unknown"
+
+    updated_at_local = utils.to_local_time(forecast.updated_at, user_time_zone)
+
+    weather_code_line = f"**Summary:** {forecast_symbol}\n"
+    forecast_message = _create_rainy_hours_message_simple(
+        forecast.forecast_hours, user_time_zone
+    )
+    location_line = f"Location: {city} ({forecast.coordinates.lat:.2f}, {forecast.coordinates.lon:.2f})\n"
+    updated_line = f"Updated: {updated_at_local.strftime('%Y-%m-%d %H:%M:%S')}\n"
+
+    title = f"Rain tomorrow! ☔"
+    description = weather_code_line + forecast_message
+    footer = location_line + updated_line
+
+    embed = discord.Embed(
+        title=title,
+        description=description,
+        color=0x76CCFA,
+    )
+    embed.set_footer(text=footer)
+    return embed
 
 
-def weather_forecast(forecast: WeatherForecast, time_zone: str) -> discord.Embed:
-    updated_at_local = to_local_time(forecast.updated_at_utc, time_zone)
+# Given a Geopy Location object, attempt to extract the city or the closest equivalent.
+def _extract_city(location: geopy.Location) -> str | None:
+    # Order of preference for the city name
+    city_keys = ["city", "town", "village", "hamlet", "suburb", "county", "state"]
+
+    # Get the raw OSM data
+    osm_data: dict[str, Any] = location.raw  # type: ignore
+
+    # Check for the city name in the OSM data
+    for key in city_keys:
+        if key in osm_data["address"]:
+            return osm_data["address"][key]  # type: ignore
+    # If no city name was found, return None
+    return None
+
+
+def _create_rainy_hours_message_simple(
+    forecast_hours: list[RainyForecastHour], user_time_zone: ZoneInfo
+):
+    # Create message from filtered data
+    seperation_line = "------------------------------------\n"
+    rainy_hours_message = seperation_line
+    prev_hour: datetime | None = None
+    for forecast_hour in forecast_hours:
+        forecast_time_local = utils.to_local_time(forecast_hour.time, user_time_zone)
+        forecast_time_formatted_str = forecast_time_local.strftime("%H:%M")
+
+        # If this hour entry not immediatly after prev -> insert seperation line
+        if prev_hour and ((prev_hour + timedelta(hours=1)) < forecast_hour.time):
+            rainy_hours_message += seperation_line
+
+        prev_hour = forecast_hour.time
+
+        # Omit for now to keep message simple
+        # precipitation_amount_elem = (
+        #     f"{forecast_hour.precipitation_amount_min}-{forecast_hour.precipitation_amount_max}"
+        #     if forecast_hour.precipitation_amount_max
+        #     else forecast_hour.precipitation_amount
+        # )
+        precipitation_amount_elem = forecast_hour.precipitation_amount
+
+        rainy_hours_message += f"**{forecast_time_formatted_str}**"
+        rainy_hours_message += f" - "
+        # rainy_hours_message += f" {precipation_probability_elem}" # Omit for now to keep message simple
+        rainy_hours_message += f" "
+        rainy_hours_message += f"{precipitation_amount_elem} mm."
+        rainy_hours_message += " "
+        rainy_hours_message += f"{forecast_hour.symbol_code}"
+        rainy_hours_message += " "
+        rainy_hours_message += f"{_rain_symbol_to_emoji(forecast_hour.symbol_code)}"
+        rainy_hours_message += "\n"
+
+    return rainy_hours_message
+
+
+# Old version of message:
+def rainy_weather_forecast(
+    forecast: RainyWeatherForecast, time_zone: ZoneInfo
+) -> discord.Embed:
+    updated_at_local = utils.to_local_time(forecast.updated_at_utc, time_zone)
     forecast_message = None
-    if len(forecast.rainy_forecasts) > 0:
-        forecast_message = create_rainy_hours_message(
-            forecast.rainy_forecasts, time_zone
+    if len(forecast.forecast_hours) > 0:
+        forecast_message = _create_rainy_hours_message(
+            forecast.forecast_hours, time_zone
         )
     else:
         forecast_message = "No rain 😎"
 
     embed = discord.Embed(
         title="Weather Forecast",
-        description=f"**{'Tomorrow' if forecast.is_next_day_included else 'Today'}** {forecast.symbol_code_12_h}\n {forecast_message}",
+        description=f"**{'Tomorrow' if forecast.is_next_day_included else 'Today'}** {forecast.forecast_symbol}\n {forecast_message}",
         color=0x76CCFA,
     )
     embed.set_footer(
-        text=f"Forecast updated at: {updated_at_local.strftime('%Y-%m-%d %H:%M:%S')}\nHH:mm min/med/max mm. (prob)"
+        text=f"Updated at: {updated_at_local.strftime('%Y-%m-%d %H:%M:%S')}\nHH:mm min/med/max mm. (prob)"
     )
     return embed
 
 
-def create_rainy_hours_message(rainy_forecasts: list[Timesery], time_zone: str):
+def _create_rainy_hours_message(
+    rainy_forecasts: list[ForecastTimeStep], user_time_zone: ZoneInfo
+):
     # Create message from filtered data
     seperation_line = "----------------------------\n"
     rainy_hours_message = seperation_line
     prev_hour: datetime | None = None
     for forecast in rainy_forecasts:
         next_hour_forecast = forecast.data.next_1__hours
-        forecast_time_local = to_local_time(forecast.time, time_zone)
+        forecast_time_local = utils.to_local_time(forecast.time, user_time_zone)
         forecast_time_formatted_str = forecast_time_local.strftime("%H:%M")
 
         # If this hour entry not immediatly after prev -> insert seperation line
@@ -53,11 +150,11 @@ def create_rainy_hours_message(rainy_forecasts: list[Timesery], time_zone: str):
         prev_hour = forecast.time
 
         # Create hour entry line
-        rainy_hours_message += f"**{forecast_time_formatted_str}** {next_hour_forecast.details.precipitation_amount_min}/{next_hour_forecast.details.precipitation_amount}/{next_hour_forecast.details.precipitation_amount_max} ({next_hour_forecast.details.probability_of_precipitation}%) - {next_hour_forecast.summary.symbol_code}  {rain_symbol_to_emoji(forecast.data.next_1__hours.summary.symbol_code)}\n"  # type: ignore
+        rainy_hours_message += f"**{forecast_time_formatted_str}** {next_hour_forecast.details.precipitation_amount_min}/{next_hour_forecast.details.precipitation_amount}/{next_hour_forecast.details.precipitation_amount_max} ({next_hour_forecast.details.probability_of_precipitation}%) - {next_hour_forecast.summary.symbol_code}  {_rain_symbol_to_emoji(forecast.data.next_1__hours.summary.symbol_code)}\n"  # type: ignore
     return rainy_hours_message
 
 
-def rain_symbol_to_emoji(rain_symbol: str):
+def _rain_symbol_to_emoji(rain_symbol: str):
     match rain_symbol:
         case "lightrain":
             return RAIN_EMOJI * 1

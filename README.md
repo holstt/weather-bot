@@ -8,7 +8,7 @@ Discord bot alerting you if it's going to rain tomorrow 🌧
 
 ## Features
 
--   Daily notification if (and only if) it's going to rain tomorrow including period and precipitation amount. Be prepared for your daily commute and when to plan for outdoor activities! 🏃🚴🤸
+-   Daily notification if (and only if) it's going to rain tomorrow including period and precipitation amount (best estimate). Be prepared for your daily commute and when to plan for outdoor activities! 🏃🚴🤸
 -   Customize the notification to your needs:
     -   Set preferred time of day for the daily alert
     -   Specify the exact location for which to retrieve weather data, using latitude and longitude.
@@ -22,6 +22,10 @@ Discord bot alerting you if it's going to rain tomorrow 🌧
     -   Example: Get notified about the 3-hour window having the lowest wind speeds within the next 24 hours to help plan the ideal time to go for a bike ride
 -   [ ] Charts: Show detailed weather forecast for a given period as a chart
 -   [ ] Weekly weather forecast: Get a weekly weather forecast with custom highlights to plan for the week ahead
+-   [ ] Customize rainy hour alert
+    -   [ ] Require minimum precipitation amount
+    -   [ ] Require minimum precipitation probability
+    -   [ ] Choose which precipitation metrics to include in the alert: best estimate, min, max, probability
 
 ## Requirements
 
@@ -49,6 +53,7 @@ The bot is configured using environment variables, which can be specified in a `
 # example.env
 BOT_TOKEN=INSERT_BOT_TOKEN # Discord API token
 DEV_CHANNEL_ID=1234578 # Channel to get notified when bot is online
+TARGET_CHANNEL_ID=1234578 # Channel to get notified about weather forecast. Can be the same as DEV_CHANNEL_ID
 LAT=11.11 # Default latitude
 LON=11.11 # Default longitude
 TIME_ZONE=Europe/Berlin # Time zone of guild

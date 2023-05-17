@@ -1,30 +1,64 @@
-# XXX: Dataclass decorator?
 from dataclasses import dataclass
 from datetime import datetime
 
-from src.dtos.yr_complete_response import Timesery
+from src.dtos.yr_complete_response import ForecastTimeStep
 
 
-class WeatherForecast:
-    def __init__(
-        self,
-        rainy_forecasts: list[Timesery],
-        includes_next_day: bool,
-        symbol_code_12_h: str,
-        updated_at_utc: datetime,
-    ) -> None:
-        self.rainy_forecasts = rainy_forecasts
-        # Whether entries of the next day is included in the forecast
-        self.is_next_day_included = includes_next_day
-        # General symbol code for this day
-        self.symbol_code_12_h = symbol_code_12_h
-        self.updated_at_utc = updated_at_utc
+@dataclass(frozen=True)
+class Coordinates:
+    lat: float
+    lon: float
+
+
+# Represents a forecast at a specific hour of the day
+@dataclass(frozen=True)
+class RainyForecastHour:
+    time: datetime  # XXX: Time object?
+    symbol_code: str
+    precipitation_amount: float
+    precipitation_amount_min: float | None
+    precipitation_amount_max: float | None
+    precipitation_probability: float | None
+
+
+# Represents a period of time with rainy forecast
+@dataclass(frozen=True)
+class RainyForecastPeriod:
+    updated_at: datetime
+    coordinates: Coordinates
+    forecast_hours: list[RainyForecastHour]
+
+
+@dataclass(frozen=True)
+class TimePeriod:
+    start: datetime
+    end: datetime
+
+
+# TODO: Consider classes below belonging to old version of message
+@dataclass(frozen=True)
+class RainyForecastPeriodQuery:
+    time_period: TimePeriod
+    coordinates: Coordinates
+
+
+# A weather forecast containing only rainy hours
+@dataclass
+class RainyWeatherForecast:
+    forecast_hours: list[ForecastTimeStep]
+    # Whether entries of the next day is included in the forecast
+    is_next_day_included: bool
+    # General symbol code for this weather forecast
+    forecast_symbol: str
+    updated_at_utc: datetime
 
 
 @dataclass
-class WeatherForecastQuery:
+class RainyWeatherForecastQuery:
     lat: float
     lon: float
-    should_include_next_day: bool
-    next_day_summary_time_utc: datetime
-    is_only_high_prob: bool = True
+    period_start: datetime
+    # Whether and from which time the next day should be included
+    include_next_day_from_time: datetime | None  # XXX: Make more generic
+    # Whether only forecasts with high probability of rain should be included
+    is_high_prob_required: bool = True

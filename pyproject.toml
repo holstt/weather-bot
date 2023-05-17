@@ -12,6 +12,7 @@ python-dateutil = "^2.8.2"
 python-dotenv = "^1.0.0"
 discord-py = "^2.2.3"
 tzdata = "^2023.3"
+geopy = "^2.3.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -23,6 +24,10 @@ pre-commit = "^3.3.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+# Make isort compatible with black
+profile = "black"
 
 [tool.pyright]
 typeCheckingMode = "strict"
