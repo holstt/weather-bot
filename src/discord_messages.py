@@ -6,8 +6,10 @@ import discord
 import geopy  # type: ignore
 from geopy.geocoders import Nominatim  # type: ignore
 
-from src import utils
+from src import time_utils
 from src.models import RainyForecastHour, RainyForecastPeriod
+
+# Messages converting model -> discord embed
 
 RAIN_EMOJI = "🌧"
 CLOUD_EMOJI = "☁"
@@ -15,7 +17,8 @@ SHOWER_EMOJI = "🚿"
 UNKOWN_EMOJI = "❓"
 
 
-def rainy_weather_forecast_daily(
+# Returns rainy forecast embed
+def rainy_weather_forecast_tomorrow(
     forecast: RainyForecastPeriod, forecast_symbol: str, user_time_zone: ZoneInfo
 ) -> discord.Embed:
     if not forecast.forecast_hours:
@@ -29,7 +32,7 @@ def rainy_weather_forecast_daily(
     location: geopy.Location = geolocator.reverse(f"{forecast.coordinates.lat}, {forecast.coordinates.lon}")  # type: ignore
     city: str = _extract_city(location) or "Unknown"
 
-    updated_at_local = utils.to_local_time(forecast.updated_at, user_time_zone)
+    updated_at_local = time_utils.to_local_time(forecast.updated_at, user_time_zone)
 
     weather_code_line = f"**Summary:** {forecast_symbol}\n"
     forecast_message = _create_rainy_hours_message_simple(
@@ -75,7 +78,9 @@ def _create_rainy_hours_message_simple(
     rainy_hours_message = seperation_line
     prev_hour: datetime | None = None
     for forecast_hour in forecast_hours:
-        forecast_time_local = utils.to_local_time(forecast_hour.time, user_time_zone)
+        forecast_time_local = time_utils.to_local_time(
+            forecast_hour.time, user_time_zone
+        )
         forecast_time_formatted_str = forecast_time_local.strftime("%H:%M")
 
         # If this hour entry not immediatly after prev -> insert seperation line

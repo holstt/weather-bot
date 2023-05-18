@@ -39,21 +39,23 @@ class WeatherService:
         forecast = self._get_forecast_at_time(from_time, dto.properties.timeseries)
         return forecast.data.next_12__hours.summary.symbol_code  # type: ignore
 
-    # Retrieves a rainy forecast using the new models
-    def get_rainy_forecast_new(
+    # Get forecast with rainy hours only
+    def get_rainy_forecast(
         self, query: RainyForecastPeriodQuery
     ) -> RainyForecastPeriod | None:
+        print(f"Getting rainy forecast for {query}")
+
         json = self._client.get_complete_forecast(
             query.coordinates.lat, query.coordinates.lon
         )
         dto = YrCompleteResponse.from_dict(json)
 
         # Convert to domain
-        model = self._dto_to_new_model(query, dto)
+        model = self._dto_to_model(query, dto)
 
         return model if model else None
 
-    def _dto_to_new_model(
+    def _dto_to_model(
         self, query: RainyForecastPeriodQuery, weather_data: YrCompleteResponse
     ) -> RainyForecastPeriod | None:
         rainy_forecast_hours = self._get_rainy_forecast_hours(

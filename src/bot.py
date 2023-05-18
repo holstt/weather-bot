@@ -1,107 +1,75 @@
-import argparse
-import logging
-from datetime import datetime, timedelta
+import os
+import traceback
 from pathlib import Path
+from typing import Any, Optional
 
 import discord
-from discord import TextChannel, app_commands
-from dotenv import load_dotenv
+from discord import TextChannel
+from discord.ext import commands
 
-import src.messages as messages
-from src import config
-from src.models import Coordinates, RainyForecastPeriodQuery, TimePeriod
-from src.utils import to_local_time, to_utc
-from src.weather_client import YrWeatherClient
-from src.weather_service import WeatherService
+from src.container import Container
 
-app_config = config.load_config()
-
-SYNC_SLASH_COMMANDS = False
-
-# Set intents
-intents = discord.Intents.default()
-intents.message_content = True
-
-# bot = commands.Bot(command_prefix='!', intents=intents)
-_client = discord.Client(intents=intents)
-tree = app_commands.CommandTree(_client)  # For slash commands
+SYNC_COMMANDS = True  # Set to false for faster startup, but commands will not be synced with discord
+cogs_dir = Path("./src/cogs")
+cogs_base_path = ".".join(cogs_dir.parts)
 
 
-# TODO: Use cogs instead
+class WeatherBot(commands.Bot):
+    # NB: Commands available in self.tree
+    def __init__(self, container: Container) -> None:
+        intents = discord.Intents.default()
+        super().__init__(command_prefix="", intents=intents)
+        self.dev_channel: Optional[TextChannel] = None
+        self.target_channel: Optional[TextChannel] = None
+        # Set dependencies, that is, the bot will act as a service container for cogs as they (only) take the bot as dependency
+        # XXX: Create own solution for automatic dependency injection when loading cogs?
+        self.container = container
+        self.config = container.config
 
+    async def setup_hook(self):
+        await self._load_cogs()
 
-@_client.event
-async def on_ready():
-    if SYNC_SLASH_COMMANDS:
-        print("Syncing slash commands...")
-        # await tree.sync() # This takes a while, as it syncs with all guilds
-        # Sync with specified target guild to update slash commands instantly
-        target_channel: discord.TextChannel = _client.get_channel(app_config.target_channel_id)  # type: ignore
-        await tree.sync(guild=discord.Object(id=target_channel.guild.id))
-        print("Slash commands synced")
+    async def on_ready(self):
+        await self._sync_commands()
+        # Get channels of interest
+        self.dev_channel = self._get_text_channel_or_raise(self.config.dev_channel_id)
+        self.target_channel = self._get_text_channel_or_raise(
+            self.config.target_channel_id
+        )
+        ready_msg = f"Bot is online ({self.user})"
+        print(ready_msg)
+        await self.dev_channel.send(ready_msg)
 
-    ready_msg = f"Bot is online ({_client.user})"
-    dev_channel: TextChannel = _client.get_channel(app_config.dev_channel_id)  # type: ignore
-    if not dev_channel:
-        raise Exception(f"Dev channel not found (id: {app_config.dev_channel_id})")
+    # Send any errors to dev channel
+    async def on_error(self, event_method: str, /, *args: Any, **kwargs: Any):
+        trace = traceback.format_exc()
+        if self.dev_channel:
+            await self.dev_channel.send(f"Exception occured: ```" + trace + "```")
+        return await super().on_error(event_method, *args, **kwargs)
 
-    print(ready_msg)
-    await dev_channel.send(ready_msg)
-    # await send_rainy_forecast(dev_channel)
+    async def _sync_commands(self):
+        if SYNC_COMMANDS:
+            print("Syncing commands with discord...")
+            # await tree.sync() # This takes a while, as it syncs with all guilds
+            # Sync with specified target guild to update slash commands instantly
+            await self.tree.sync(guild=discord.Object(id=self.config.target_guild_id))
+            print("Commands synced")
 
+    def _get_text_channel_or_raise(self, channel_id: int) -> TextChannel:
+        channel = self.get_channel(channel_id)
+        if not channel:
+            raise Exception(f"Channel not found (id: {channel_id})")
+        if not isinstance(channel, TextChannel):
+            raise Exception(f"Channel is not a text channel (id: {channel_id})")
+        return channel
 
-# Sends a rainy forecast (if any) to the target channel # TODO: Move resp. to other layer. Should be generic method that sends any embed to target channel
-async def send_rainy_forecast(channel: discord.TextChannel):
-    forecast, forecast_symbol = get_rainy_forecast()
+    async def _load_cogs(self):
+        print(f"Loading cogs from: {cogs_dir.resolve()}")
+        for filename in os.listdir(cogs_dir):
+            if filename.endswith(".py"):
+                await self.load_extension(f"{cogs_base_path}.{filename[:-3]}")
+                print(f"Cog loaded: {filename[:-3]}")
 
-    if forecast is None or forecast_symbol is None:
-        return
-
-    embed = messages.rainy_weather_forecast_daily(
-        forecast, forecast_symbol, app_config.time_zone
-    )
-    await channel.send(embed=embed)
-    print("Notification sent")
-
-
-def get_rainy_forecast():
-    client = YrWeatherClient()
-    service = WeatherService(client)
-
-    # Get start of day in local time
-    local_start_of_day = to_local_time(datetime.utcnow(), app_config.time_zone).replace(
-        hour=0, minute=0, second=0, microsecond=0
-    )
-    local_start_of_day_tomorrow = local_start_of_day + timedelta(days=1)
-
-    # Convert local day to utc period
-    period_start = to_utc(local_start_of_day_tomorrow)
-    period_end = period_start + timedelta(days=1)
-    time_period = TimePeriod(start=period_start, end=period_end)
-
-    print(f"Getting rainy forecast for UTC period: {time_period}")
-    query = RainyForecastPeriodQuery(
-        time_period=time_period,
-        coordinates=Coordinates(lat=app_config.lat, lon=app_config.lon),
-    )
-    forecast = service.get_rainy_forecast_new(query)
-
-    if not forecast:
-        print("No rainy forecast found for: " + str(local_start_of_day_tomorrow.date()))
-        return None, None
-    else:
-        print("Rainy forecast found for: " + str(local_start_of_day_tomorrow.date()))
-    forecast_symbol = service.get_forecast_symbol_code(
-        from_time=local_start_of_day_tomorrow + timedelta(hours=8),
-        coordinates=query.coordinates,
-    )
-
-    return forecast, forecast_symbol
-
-
-class DiscordCommandException(Exception):
-    pass
-
-
-def run():
-    _client.run(app_config.bot_token, log_level=logging.INFO)
+    def _print_commands(self):
+        for command in self.tree.get_commands():
+            print(command.name)

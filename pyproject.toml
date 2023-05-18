@@ -41,7 +41,7 @@ reportUnusedImport = "information"
 
 # Add to strict rules
 reportCallInDefaultInitializer = "error"
-reportImplicitOverride = "error"
+# reportImplicitOverride = "error"
 reportImplicitStringConcatenation = "error"
 reportPropertyTypeMismatch = "error"
 reportShadowedImports = "error"

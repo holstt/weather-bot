@@ -1,22 +1,49 @@
 import argparse
+from datetime import time
 from pathlib import Path
+from typing import Any
 from zoneinfo import ZoneInfo
 
+# import time
 from dotenv import load_dotenv
 from pydantic import BaseSettings, Field, validator  # type: ignore
+
+from src import time_utils
+
+_guild_id = None
+_notify_time = None
+
+
+# Global variables which should be accessible from cogs
+def get_guild_id():
+    if _guild_id is None:
+        raise Exception("Guild ID not set")
+    return _guild_id
+
+
+def get_notify_time():
+    if _notify_time is None:
+        raise Exception("Notify time not set")
+    return _notify_time
 
 
 class AppConfig(BaseSettings):
     bot_token: str = Field(..., env="BOT_TOKEN")
     dev_channel_id: int = Field(..., env="DEV_CHANNEL_ID")
     target_channel_id: int = Field(..., env="TARGET_CHANNEL_ID")
+    target_guild_id: int = Field(..., env="TARGET_GUILD_ID")
     lat: float = Field(..., env="LAT")
     lon: float = Field(..., env="LON")
     time_zone: ZoneInfo = Field(..., env="TIME_ZONE")
+    notify_time: time = Field(..., env="NOTIFY_TIME_OF_DAY")
 
     @validator("time_zone", pre=True)
     def parse_timezone(cls, value: str):
         return ZoneInfo(value)
+
+    @validator("notify_time", pre=True)
+    def parse_notify_time(cls, value: str, values: dict[str, Any]):
+        return time_utils.parse_time_str(value, values["time_zone"])
 
 
 def load_config() -> AppConfig:
@@ -38,4 +65,10 @@ def load_config() -> AppConfig:
         )
 
     config = AppConfig()  # type: ignore
+
+    # Set guild id for all to access when command syncing
+    global _guild_id
+    global _notify_time
+    _guild_id = config.target_guild_id
+    _notify_time = config.notify_time
     return config
