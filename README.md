@@ -4,7 +4,7 @@
 
 Discord bot alerting you if it's going to rain tomorrow 🌧
 
-<img src="docs/rainy_forecast_message.png" width=40%>
+<img src="docs/rainy_forecast_message.png" width=30%>
 
 ## Features
 
