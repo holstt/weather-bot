@@ -1,47 +1,42 @@
-import dateutil.parser as dparser
-from datetime import date, datetime, timedelta, timezone
+import logging
+from typing import Any
+
 from requests_cache import CachedSession
 
-from src.dto_yr_data_complete import data_complete_from_dict
-
-# Fetches weather data from the YR API
-
-# Create a new session with default values and cache
-# Default to one hour expiration for all requests in this session.
-# Enable cache control to automatically set expiration based on "Expired" response header (usally lt 0.5 hour)
-client_session = CachedSession(
-    expire_after=timedelta(hours=1), cache_control=True)
+logger = logging.getLogger(__name__)
 
 
-# type: ignore # Identification required by YR
-client_session.headers = {'User-Agent': 'WeatherBot/0.1'}
+# Fetches weather data from the YR API (https://developer.yr.no/featured-products/forecast/)
+# - From YR: "Full weather forecast for one location, that is, a forecast with several parameters for a nine-day period.""
+# - Forecasts in one hour intervals starting from latest update time (usually every hour) in UTC
+# - Each datapoint contains "instant" weather metrics about the weather for that hour
+# - Each datapoint also contains 1, 6 and 12 hour summary data from the perspective of that hour. Includes symbol code, precipitation etc
+class YrWeatherClient:
+    BASE_URL = "https://api.met.no/weatherapi/locationforecast/2.0/"
+    CACHE_PATH = "./data/http_cache.sqlite"
 
-print("Default cache expiration: " + str(client_session.expire_after))
+    def __init__(self) -> None:
+        # Create a cached session
+        # Enable cache control to automatically set expiration based on "Expired" response header (usally lt 0.5 hour for YR)
+        # This caches all requests for the same weather location
+        self.session = CachedSession(
+            cache_control=True,
+            cache_name=self.CACHE_PATH,
+        )
+        # Identification required by YR
+        self.session.headers = {"User-Agent": "WeatherBot/0.1"}
 
+    def get_complete_forecast(self, lat: float, lon: float) -> dict[str, Any]:
+        # data_endpoint = "compact"
+        DATA_ENDPOINT = "complete"  # Endpoint providing most details
+        url = self.BASE_URL + DATA_ENDPOINT
+        location_query = {"lat": lat, "lon": lon}
 
-def get_forecast(lat: float, lon: float):
-    # data_endpoint = "compact"
-    data_endpoint = "complete"  # Endpoint providing most details
-    query = {'lat': lat, 'lon': lon}
-    url = f"https://api.met.no/weatherapi/locationforecast/2.0/{data_endpoint}"
+        response = self.session.get(url, params=location_query)  # type: ignore
+        response.raise_for_status()
 
-    response = client_session.get(url, params=query)  # type: ignore
-    # Throw if not success. # XXX Hvad medtages i exception, response?
-    response.raise_for_status()
+        logger.info(f"YR API response retrieved from cache: {response.from_cache}")
 
-    # Alt
-    # if response.status_code != 200:
-    #     raise Exception("")
-
-    # print("Expires specs:")
-    # print("created: " + str(response.created_at))
-    # print("expires: " + str(response.expires))
-    # print("is_expired: " + str(response.is_expired))
-
-    # Check if cached response
-    print(f"Response in cache: {str(response.from_cache)}")
-
-    json: dict = response.json()
-    data_complete = data_complete_from_dict(json)
-
-    return data_complete
+        # Get json and convert to DTO
+        json: dict[str, Any] = response.json()
+        return json

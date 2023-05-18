@@ -1,81 +1,119 @@
 # weather-bot
 
-[![deploy](https://github.com/holstt/weather-bot/actions/workflows/deploy.yaml/badge.svg)](https://github.com/holstt/weather-bot/actions/workflows/deploy.yaml)
+[![build](https://github.com/holstt/weather-bot/actions/workflows/build.yaml/badge.svg)](https://github.com/holstt/weather-bot/actions/workflows/build.yaml)
 
-A simple Discord bot that tells you when it's going to rain in your location. With this bot, you'll never have to worry about getting caught in the rain without an umbrella! 🌧
+Discord bot alerting you if it's going to rain tomorrow 🌧
 
 <img src="docs/rainy_forecast_message.png" width=40%>
 
 ## Features
 
--   Reliable weather data from the [YR API](https://developer.yr.no/)
--   Weather updates for any location showing only rainy hours
--   Get notified about rainy weather forecast for today or tomorrow at a custom time every day (NOT IMPLEMENTED)
+-   Daily notification if (and only if) it's going to rain tomorrow including period and precipitation amount (best estimate). Be prepared for your daily commute and when to plan for outdoor activities! 🏃🚴🤸
+-   Customize the notification to your needs:
+    -   Set preferred time of day for the daily alert
+    -   Specify the exact location for which to retrieve weather data, using latitude and longitude.
+-   Weather data from any location provided by the [YR API](https://developer.yr.no/)
+-   Manually check for rain tomorrow using `/rain_check` command
 
-## Prerequisites
+#### Todo:
 
--   [Discord API token](https://discord.com/developers/docs/intro)
+-   [ ] Command `/rain_check <period>`: Show rainy hours for a given period
+    -   Examples: `/rain_check today`, `/rain_check tomorrow`, `/rain_check week`, `/rain_check 3d`
+-   [ ] Set up weather alerts: Get notified if a weather metric gets above/below a certain threshold within a rolling time window
+    -   Example: Get notified if the temperature drops below 0°C within the next 24 hours
+    -   Example: Get notified about the 3-hour window having the lowest wind speeds within the next 24 hours to help plan the ideal time to go for a bike ride
+-   [ ] Charts: Show detailed weather forecast for a given period as a chart
+-   [ ] Weekly weather forecast: Get a weekly weather forecast with custom highlights to plan for the week ahead
+-   [ ] Customize rainy hour alert
+    -   [ ] Require minimum precipitation amount
+    -   [ ] Require minimum precipitation probability
+    -   [ ] Choose which precipitation metrics to include in the alert: best estimate, min, max, probability
+
+## Requirements
+
+-   [Discord bot token](https://discord.com/developers/docs/intro)
 -   [YR API key](https://developer.yr.no/)
+-   If running locally: The Poetry package manager, see [installation instructions](https://python-poetry.org/docs/#installation)
+-   If running with Docker: [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
 
-## Local setup with Anaconda
+## Getting Started
 
-#### 1. Create environment and install dependencies
-
-```
-conda create --name weatherbot --file requirements.txt python=3.10
-conda activate weatherbot
-```
-
-#### 2. Configuration
-
-Add the relevant information to the `./example.env` file and rename it to `.env`:
+**1. Clone the repository**:
 
 ```
-# example.env
-BOT_TOKEN=INSERT_BOT_TOKEN # Discord API token
-DEV_CHANNEL_ID=1234578 # Channel to get notified when bot is online
-LAT=11.11 # Default latitude
-LON=11.11 # Default longitude
-TIME_ZONE=Europe/Berlin # Time zone of guild
+git clone https://github.com/holstt/weather-bot.git
+cd weather-bot
 ```
 
-**Please note**
+**2. Set up configuration**
 
--   You can also use a custom name for the environment file (e.g. if you create both a `dev.env` or `prod.env` file). For a custom named and/or custom path of the .env file, the path should be given as argument when running the bot using the `-e` option e.g. `-e dev.env`
+The bot is configured using environment variables, which can be specified in a `.env` file or set directly in the environment. If using a `.env` file, you can use the `./example.env` file as a template and rename it to `.env`.
 
-#### 3. Run the bot
+| Environment Variable | Type    | Description                                                                                                                          | Example         |
+| -------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ | --------------- |
+| `BOT_TOKEN`          | String  | Discord API token                                                                                                                    | `ABC1234XYZ987` |
+| `LAT`                | Float   | Default latitude                                                                                                                     | `11.22`         |
+| `LON`                | Float   | Default longitude                                                                                                                    | `33.44`         |
+| `TIME_ZONE`          | String  | IANA time zone of guild. See [this list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for all available time zones. | `Europe/Berlin` |
+| `NOTIFY_TIME_OF_DAY` | String  | Time of day to recieve alert iff it is going to rain tomorrow. Format: `HH:MM`                                                       | `21:30`         |
+| `TARGET_GUILD_ID`    | Integer | Guild ID of the guild to send the weather forecast to                                                                                | `1234567890`    |
+| `TARGET_CHANNEL_ID`  | Integer | Channel to get notified about weather forecasts. Can be the same as `DEV_CHANNEL_ID`                                                 | `1234567890`    |
+| `DEV_CHANNEL_ID`     | Integer | Channel to get notified when bot is online and when errors occur. Can be the same as TARGET_CHANNEL_ID                               | `1234567890`    |
+
+## Running Locally 💻
+
+**3. Install the dependencies and create a virtual environment**
+
+```
+poetry install
+```
+
+**4. Activate the virtual environment**
+
+```
+poetry shell
+```
+
+**5. Run the bot**
 
 ```
 python main.py
-python main.py -e dev.env # With custom named .env file
 ```
 
-## Running with Docker Compose
+If you use a `.env` file to configure the environment, the program assumes it is named `.env` and located in the root of the project folder. Alternatively, you can provide a custom name/path for the environment file (e.g. if you create both a `dev.env` and `prod.env` file). Use `-e` to pass the path as an argument when running the bot:
 
-Using docker-compose is the easiest way to run the bot. Files for running the bot with docker-compose is placed in the `/docker` folder which includes a Dockerfile as well as docker-compose files.
+```
+python main.py -e path/to/my.env
+```
 
-You can rename the image in `docker-compose.yml` to a custom name or a name that links the image to your own Docker Hub repository if you wish to use the CI/CD pipeline (see below)
+## Running with Docker Compose 🐳
 
-The environment file is not copied into the docker image but mounted into the container at run time. As such, it must exist at the path specified under `volumes` in `docker-compose.prod.yml` (for production) and `docker-compose.override.yml` (for development).
+Using docker-compose is the easiest way to run the bot.
 
--   Please note, that in `docker-compose.prod.yml` the path can also be specified by setting the $ENV_PATH environment variable (this option is used in the CI/CD pipeline)
+**3. From project root, navigate to the `./docker` folder**
 
 ```
 cd docker
-
-# Run in Development
-docker-compose up --build
-
-# Run in Production
-docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
 ```
 
-## Running the CI/CD pipeline
+**4. Configure and run the Docker project**
 
-For the pipeline to work, you must create a Docker Hub account.
+`docker-compose.yml` expects the environment variables to be defined in a file named `.env` located in root of the project folder. Set the `ENV_PATH` environment variable if you use a different name or location for the environment file. Then run:
 
-The Github Actions CI/CD pipeline deploys the bot on your server automatically every time a commit is made to the `main` branch. Please inspect `.github/workflows/deploy.yaml` for the required environment variables that should be set up in your Github repository as well as the assumptions made about the file structure of the repository and the remote server.
+```
+docker-compose up -d
+```
 
-## Remarks
+## Additional Information
 
--   All requests to the YR API are cached with respect to their individual `Expire` response header to comply with the YR TOS. As such, muliple forecast requests for the same coordinate will only result in a single http request until the response expires (typically 0.5 hour it seems). The cache will be stored as a sqlite db named `http_cache.sqlite` and placed in the root folder.
+#### Cache
+
+All requests to the YR API are cached with respect to their individual `Expire` response header to comply with the YR TOS. As such, muliple forecast requests for the same coordinate will only result in a single http request until the response expires (typically 0.5 hour it seems). The cache will be stored as a sqlite db at `./data/http_cache.sqlite`.
+
+#### Git hooks
+
+This project uses [pre-commit](https://pre-commit.com/) to run git hooks. The hooks are defined in `.pre-commit-config.yaml` and can be installed by running:
+
+```
+pre-commit install
+```

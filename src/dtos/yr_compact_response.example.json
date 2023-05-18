@@ -1,0 +1,137 @@
+{
+    "type": "Feature",
+    "geometry": {
+        "type": "Point",
+        "coordinates": [
+            0,
+            0,
+            0
+        ]
+    },
+    "properties": {
+        "meta": {
+            "updated_at": "2023-05-16T17:32:10Z",
+            "units": {
+                "air_pressure_at_sea_level": "hPa",
+                "air_temperature": "celsius",
+                "cloud_area_fraction": "%",
+                "precipitation_amount": "mm",
+                "relative_humidity": "%",
+                "wind_from_direction": "degrees",
+                "wind_speed": "m/s"
+            }
+        },
+        "timeseries": [
+            {
+                "time": "2023-05-16T18:00:00Z",
+                "data": {
+                    "instant": {
+                        "details": {
+                            "air_pressure_at_sea_level": 1012.0,
+                            "air_temperature": 25.5,
+                            "cloud_area_fraction": 100.0,
+                            "relative_humidity": 85.6,
+                            "wind_from_direction": 175.5,
+                            "wind_speed": 4.4
+                        }
+                    },
+                    "next_12_hours": {
+                        "summary": {
+                            "symbol_code": "cloudy"
+                        }
+                    },
+                    "next_1_hours": {
+                        "summary": {
+                            "symbol_code": "lightrain"
+                        },
+                        "details": {
+                            "precipitation_amount": 0.2
+                        }
+                    },
+                    "next_6_hours": {
+                        "summary": {
+                            "symbol_code": "cloudy"
+                        },
+                        "details": {
+                            "precipitation_amount": 0.3
+                        }
+                    }
+                }
+            },
+            {
+                "time": "2023-05-16T19:00:00Z",
+                "data": {
+                    "instant": {
+                        "details": {
+                            "air_pressure_at_sea_level": 1012.0,
+                            "air_temperature": 26.2,
+                            "cloud_area_fraction": 100.0,
+                            "relative_humidity": 83.6,
+                            "wind_from_direction": 189.5,
+                            "wind_speed": 3.9
+                        }
+                    },
+                    "next_12_hours": {
+                        "summary": {
+                            "symbol_code": "cloudy"
+                        }
+                    },
+                    "next_1_hours": {
+                        "summary": {
+                            "symbol_code": "cloudy"
+                        },
+                        "details": {
+                            "precipitation_amount": 0.0
+                        }
+                    },
+                    "next_6_hours": {
+                        "summary": {
+                            "symbol_code": "cloudy"
+                        },
+                        "details": {
+                            "precipitation_amount": 0.2
+                        }
+                    }
+                }
+            },
+            {
+                "time": "2023-05-25T18:00:00Z",
+                "data": {
+                    "instant": {
+                        "details": {
+                            "air_pressure_at_sea_level": 1010.6,
+                            "air_temperature": 25.9,
+                            "cloud_area_fraction": 100.0,
+                            "relative_humidity": 84.3,
+                            "wind_from_direction": 149.8,
+                            "wind_speed": 3.3
+                        }
+                    },
+                    "next_6_hours": {
+                        "summary": {
+                            "symbol_code": "cloudy"
+                        },
+                        "details": {
+                            "precipitation_amount": 0.1
+                        }
+                    }
+                }
+            },
+            {
+                "time": "2023-05-26T00:00:00Z",
+                "data": {
+                    "instant": {
+                        "details": {
+                            "air_pressure_at_sea_level": 1011.7,
+                            "air_temperature": 27.9,
+                            "cloud_area_fraction": 100.0,
+                            "relative_humidity": 77.8,
+                            "wind_from_direction": 157.2,
+                            "wind_speed": 5.5
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

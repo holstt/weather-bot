@@ -1,65 +1,171 @@
-from datetime import datetime, timedelta, timezone
-from glob import glob
-import discord
-from src.models import WeatherForecast, WeatherForecastQuery
+import logging
+from datetime import datetime
+from typing import Iterator
 
-from src.dto_yr_data_complete import DataComplete, Timesery
+from src.dtos.yr_complete_response import (
+    ForecastTimeStep,
+    Next1_Hours,
+    YrCompleteResponse,
+)
+from src.models import (
+    Coordinates,
+    RainyForecastHour,
+    RainyForecastPeriod,
+    RainyForecastPeriodQuery,
+    TimePeriod,
+)
+from src.weather_client import YrWeatherClient
 
-import src.weather_client as weather_client
-from src.utils import to_local_time
-
-
-# local_time_zone_val = None
-
-# Retrieves rainy forecast.
-
-
-def get_forecast(query: WeatherForecastQuery):
-
-    data: DataComplete = weather_client.get_forecast(query.lat, query.lon)
-
-    # Convert to domain
-
-    model = dto_to_model(data, query)
-
-    return model
+logger = logging.getLogger(__name__)
 
 
-# XXX: Rette sted?
-def dto_to_model(weather_data: DataComplete, query: WeatherForecastQuery) -> WeatherForecast:
-    print(query.is_only_high_prob)
-    # global local_time_zone_val
+# TODO: Implement specification pattern for filtering forecasts
+# class Specification(ABC):
+#     @abstractmethod
+#     def is_satisfied_by(self, forecast: ForecastTimeStep) -> bool:
+#         pass
 
-    # Get summary for next 12 hours
-    symbol_code_12_h = weather_data.properties.timeseries[
-        0].data.next_12__hours.summary.symbol_code or "No symbol code"
+# class RainyForecastSpecification(Specification):
+#     @override
+#     def is_satisfied_by(self, forecast: ForecastTimeStep) -> bool:
+#         return True
 
-    updated_at_utc = weather_data.properties.meta.updated_at
 
-    # Include only entries up to and including a certain date.
-    date_limit = weather_data.properties.timeseries[0].time
+class WeatherService:
+    def __init__(self, weather_client: YrWeatherClient) -> None:
+        self._client = weather_client
 
-    if(query.should_include_next_day):
-        # If late, get entries for the next day also
-        date_limit = date_limit + timedelta(days=1)
-        # print("new date limit: " + str(date_limit))
+    # Get forecast symbol code that represents the weather for the next 12 hours from a given time.
+    def get_forecast_symbol_code(self, from_time: datetime, coordinates: Coordinates):
+        logger.info(f"Getting forecast symbol code for {coordinates} at {from_time}")
+        json = self._client.get_complete_forecast(coordinates.lat, coordinates.lon)
+        dto = YrCompleteResponse.from_dict(json)
+        forecast = self._get_forecast_at_time(from_time, dto.properties.timeseries)
+        return forecast.data.next_12__hours.summary.symbol_code  # type: ignore
 
-        # Find 12h symbol for tomorrow morning # XXX: Evt. slå sammen med nedenstående
-        symbol_code_12_h = next(
-            (forecast.data.next_12__hours.summary.symbol_code for forecast in weather_data.properties.timeseries if forecast.time > query.next_day_summary_time_utc))
+    # Get forecast with rainy hours only
+    def get_rainy_forecast(
+        self, query: RainyForecastPeriodQuery
+    ) -> RainyForecastPeriod | None:
+        logger.info(f"Getting rainy forecast for {query}")
 
-    # Get rainy hours i.e. contains any precipation
-    rainy_forecasts: list[Timesery] = []
-    for forecast in weather_data.properties.timeseries:  # XXX Ryk i funktion
-        # Conditions: not exceeding date limit, has 1 hour summary data (some entries only have 6+12 hour forecast), has precipation
-        next_hour_forecast = forecast.data.next_1__hours
-        if next_hour_forecast and (forecast.time.date() <= date_limit.date()) and (next_hour_forecast.details.precipitation_amount_max > 0):
-            rainy_forecasts.append(forecast)
+        json = self._client.get_complete_forecast(
+            query.coordinates.lat, query.coordinates.lon
+        )
+        dto = YrCompleteResponse.from_dict(json)
 
-    # Apply filter: Now get the hour_forecasts with rain in symbol (i.e. high prob of rain) ## Ryk i funktion, bool whether apply
-    # Ignore not so rainy hours
-    if query.is_only_high_prob:
-        rainy_forecasts = [
-            forecast for forecast in rainy_forecasts if "rain" in forecast.data.next_1__hours.summary.symbol_code]
+        # Convert to domain
+        model = self._dto_to_model(query, dto)
 
-    return WeatherForecast(rainy_forecasts, query.should_include_next_day, symbol_code_12_h, updated_at_utc)
+        return model if model else None
+
+    def _dto_to_model(
+        self, query: RainyForecastPeriodQuery, weather_data: YrCompleteResponse
+    ) -> RainyForecastPeriod | None:
+        rainy_forecast_hours = self._get_rainy_forecast_hours(
+            query.time_period, weather_data
+        )
+        if not rainy_forecast_hours:
+            return None
+
+        forecast_updated_at_utc = weather_data.properties.meta.updated_at
+
+        return RainyForecastPeriod(
+            forecast_updated_at_utc,
+            query.coordinates,
+            rainy_forecast_hours,
+        )
+
+    # Get rainy hours for a given time period
+    def _get_rainy_forecast_hours(
+        self, time_period: TimePeriod, weather_data: YrCompleteResponse
+    ) -> list[RainyForecastHour] | None:
+        rainy_forecasts: list[RainyForecastHour] = []
+        for forecast_hour_dto in self._forecasts_within_period(
+            weather_data,
+            time_period,
+        ):
+            next_hour_forecast = forecast_hour_dto.data.next_1__hours
+            if not (
+                next_hour_forecast
+                and self._is_rainy_forecast_estimated(next_hour_forecast)
+            ):
+                # Not a valid forecast, skip
+                continue
+
+            forecast_hour_model = RainyForecastHour(
+                forecast_hour_dto.time,
+                next_hour_forecast.summary.symbol_code,
+                next_hour_forecast.details.precipitation_amount,  # type: ignore
+                next_hour_forecast.details.precipitation_amount_min,
+                next_hour_forecast.details.precipitation_amount_max,
+                next_hour_forecast.details.probability_of_precipitation,
+            )
+
+            # Forecast is rainy, add to list
+            rainy_forecasts.append(forecast_hour_model)
+
+        if not rainy_forecasts:
+            logger.info("No rainy forecast found")
+
+        logger.info(f"Found {len(rainy_forecasts)} rainy forecast hours")
+        return rainy_forecasts
+
+    def _get_forecast_at_time(
+        self,
+        time: datetime,
+        forecasts: list[ForecastTimeStep],
+    ):
+        symbol_forecast = next(
+            (forecast for forecast in forecasts if forecast.time >= time)
+        )
+        return symbol_forecast
+
+    def _forecasts_within_period(
+        self,
+        weather_data: YrCompleteResponse,
+        time_period: TimePeriod,
+    ) -> Iterator[ForecastTimeStep]:
+        logger.info(
+            f"Returning forecasts between period_start: {time_period.start}, and period_end: {time_period.end}"
+        )
+        for forecast_hour_entry in weather_data.properties.timeseries:
+            if self._is_within_period(forecast_hour_entry, time_period):
+                yield forecast_hour_entry
+
+    def _is_within_period(
+        self,
+        forecast: ForecastTimeStep,
+        time_period: TimePeriod,
+    ) -> bool:
+        return time_period.start <= forecast.time <= time_period.end
+
+    # Returns too if there is a high probability of rain.
+    def _is_rainy_forecast_high_prob(self, next_hour_forecast: Next1_Hours) -> bool:
+        # XXX: Requires some testing.
+        # XXX: Other possible values are "light_rain" and "heavy_rain" etc. Or set threshold for precipitation_amount?
+        return "rain" in next_hour_forecast.summary.symbol_code
+
+    # Returns true if there is a probability of rain in the best estimate
+    def _is_rainy_forecast_estimated(self, next_hour_forecast: Next1_Hours) -> bool:
+        # precipitation_amount represents the best estimate of the precipitation amount
+        if (
+            next_hour_forecast.details.precipitation_amount
+        ):  # Can be None if not available
+            return next_hour_forecast.details.precipitation_amount > 0
+        return False
+
+    # Returns true for any amount of rain, even if low probability
+    def _is_rainy_forecast_any_amount(self, next_hour_forecast: Next1_Hours) -> bool:
+        # precipitation_amount_max is not always available in the forecast, then use precipitation_amount instead
+        # else we assume that the forecast is not rainy
+        if (
+            next_hour_forecast.details.precipitation_amount_max
+        ):  # Can be None if not available
+            return next_hour_forecast.details.precipitation_amount_max > 0
+        if (
+            next_hour_forecast.details.precipitation_amount
+        ):  # Can be None if not available
+            return next_hour_forecast.details.precipitation_amount > 0
+
+        return False

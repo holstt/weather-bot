@@ -1,23 +1,65 @@
-# XXX: Dataclass decorator?
+import logging
 from dataclasses import dataclass
-from datetime import datetime
-from src.dto_yr_data_complete import Timesery
+from datetime import date, datetime, timedelta
+from tracemalloc import start
+from zoneinfo import ZoneInfo
+
+from src import time_utils
+
+logger = logging.getLogger(__name__)
 
 
-class WeatherForecast:
-    def __init__(self, rainy_forecasts: list[Timesery], includes_next_day: bool, symbol_code_12_h: str, updated_at_utc: datetime) -> None:
-        self.rainy_forecasts = rainy_forecasts
-        # Whether entries of the next day is included in the forecast
-        self.is_next_day_included = includes_next_day
-        # General symbol code for this day
-        self.symbol_code_12_h = symbol_code_12_h
-        self.updated_at_utc = updated_at_utc
-
-
-@dataclass
-class WeatherForecastQuery:
+@dataclass(frozen=True)
+class Coordinates:
     lat: float
     lon: float
-    should_include_next_day: bool
-    next_day_summary_time_utc: datetime
-    is_only_high_prob: bool = True
+
+
+# Represents a forecast at a specific hour of the day
+@dataclass(frozen=True)
+class RainyForecastHour:
+    time: datetime  # XXX: Time object?
+    symbol_code: str
+    precipitation_amount: float
+    precipitation_amount_min: float | None
+    precipitation_amount_max: float | None
+    precipitation_probability: float | None
+
+
+# Represents a period of time with rainy forecast
+@dataclass(frozen=True)
+class RainyForecastPeriod:
+    updated_at: datetime
+    coordinates: Coordinates
+    forecast_hours: list[RainyForecastHour]
+
+
+@dataclass(frozen=True)
+class TimePeriod:
+    start: datetime
+    end: datetime
+
+    @staticmethod
+    def from_full_days(current_time: datetime, num_days: int = 1) -> "TimePeriod":
+        time_utils.assert_timezone(current_time)
+        current_time = current_time.replace(hour=0, minute=0, second=0, microsecond=0)
+        return TimePeriod(
+            start=current_time,
+            # End of day is start of next day minus 1 microsecond
+            end=current_time + timedelta(days=num_days, microseconds=-1),
+        )
+
+    def as_time_zone(self, time_zone: ZoneInfo) -> "TimePeriod":
+        return TimePeriod(
+            start=time_utils.as_time_zone(self.start, time_zone),
+            end=time_utils.as_time_zone(self.end, time_zone),
+        )
+
+    def as_utc(self) -> "TimePeriod":
+        return self.as_time_zone(ZoneInfo("UTC"))
+
+
+@dataclass(frozen=True)
+class RainyForecastPeriodQuery:
+    time_period: TimePeriod
+    coordinates: Coordinates
