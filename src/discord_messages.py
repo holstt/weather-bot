@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 # Messages converting model -> discord embed
 
 RAIN_EMOJI = "🌧"
+SNOW_EMOJI = "❄"
+SLEET_EMOJI = "🌨"
 CLOUD_EMOJI = "☁"
 SHOWER_EMOJI = "🚿"
 UNKOWN_EMOJI = "❓"
@@ -108,23 +110,38 @@ def _create_rainy_hours_message_simple(
         rainy_hours_message += " "
         rainy_hours_message += f"{forecast_hour.symbol_code}"
         rainy_hours_message += " "
-        rainy_hours_message += f"{_rain_symbol_to_emoji(forecast_hour.symbol_code)}"
+        rainy_hours_message += (
+            f"{_precipitation_symbol_to_emoji(forecast_hour.symbol_code)}"
+        )
         rainy_hours_message += "\n"
 
     return rainy_hours_message
 
 
-def _rain_symbol_to_emoji(rain_symbol: str):
-    match rain_symbol:
-        case "lightrain":
+# NB: Order is important, as symbol can contain multiple keywords, e.g. 'heavyrainshowersandthunder'
+def _precipitation_symbol_to_emoji(symbol: str):
+    match symbol:
+        case _ if "lightrain" in symbol:
             return RAIN_EMOJI * 1
-        case "rain":
-            return RAIN_EMOJI * 2
-        case "heavyrain":
+        case _ if "heavyrain":
             return RAIN_EMOJI * 3
-        case _ if "cloud" in rain_symbol:
-            return CLOUD_EMOJI
-        case _ if "shower" in rain_symbol:
-            return SHOWER_EMOJI
+        case _ if "rain" in symbol:
+            return RAIN_EMOJI * 2
+        case _ if "lightsnow" in symbol:
+            return SNOW_EMOJI * 1
+        case _ if "heavysnow":
+            return SNOW_EMOJI * 3
+        case _ if "snow" in symbol:
+            return SNOW_EMOJI * 2
+        case _ if "lightsleet" in symbol:
+            return SLEET_EMOJI * 1
+        case _ if "heavysleet" in symbol:
+            return SLEET_EMOJI * 3
+        case _ if "sleet" in symbol:
+            return SLEET_EMOJI * 2
+        case _ if "shower" in symbol:
+            return SHOWER_EMOJI * 1
+        case _ if "cloud" in symbol:
+            return CLOUD_EMOJI * 1
         case _:
             return UNKOWN_EMOJI
