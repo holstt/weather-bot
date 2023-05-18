@@ -13,10 +13,12 @@ Discord bot alerting you if it's going to rain tomorrow 🌧
     -   Set preferred time of day for the daily alert
     -   Specify the exact location for which to retrieve weather data, using latitude and longitude.
 -   Weather data from any location provided by the [YR API](https://developer.yr.no/)
+-   Manually check for rain tomorrow using `/rain_check` command
 
 #### Todo:
 
--   [ ] Command: Show rainy hours for a given period
+-   [ ] Command `/rain_check <period>`: Show rainy hours for a given period
+    -   Examples: `/rain_check today`, `/rain_check tomorrow`, `/rain_check week`, `/rain_check 3d`
 -   [ ] Set up weather alerts: Get notified if a weather metric gets above/below a certain threshold within a rolling time window
     -   Example: Get notified if the temperature drops below 0°C within the next 24 hours
     -   Example: Get notified about the 3-hour window having the lowest wind speeds within the next 24 hours to help plan the ideal time to go for a bike ride
