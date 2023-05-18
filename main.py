@@ -1,12 +1,7 @@
 import logging
-import time
 
 from src import config, startup
 from src.bot import WeatherBot
-from src.config import AppConfig
-from src.container import Container
-from src.weather_client import YrWeatherClient
-from src.weather_service import WeatherService
 
 logger = logging.getLogger(__name__)
 

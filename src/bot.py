@@ -27,7 +27,7 @@ class WeatherBot(commands.Bot):
         self.target_channel: Optional[TextChannel] = None
         # Set dependencies, that is, the bot will act as a service container for cogs as they (only) take the bot as dependency
         # XXX: Create own solution for automatic dependency injection when loading cogs?
-        self.container = container
+        self.container: Container = container
         self.config = container.config
 
     async def setup_hook(self):

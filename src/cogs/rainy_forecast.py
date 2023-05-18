@@ -1,15 +1,14 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import discord
 from discord import app_commands
 from discord.ext import commands, tasks
 
 import src.discord_messages as discord_messages
-from src import config
+from src import config, time_utils
 from src.bot import WeatherBot
 from src.models import Coordinates, RainyForecastPeriodQuery, TimePeriod
-from src.time_utils import to_local_time, to_utc
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +26,9 @@ class RainyForecast(commands.Cog):
         description="Checks if it's going to rain tomorrow",
         name="rain_check",
     )
-    @app_commands.guilds(discord.Object(id=config.get_guild_id()))
+    @app_commands.guilds(discord.Object(id=config.app_config.target_guild_id))
     async def rain_check(self, interaction: discord.Interaction) -> None:
-        forecast, forecast_symbol = self._get_rainy_forecast()
+        forecast, forecast_symbol = self._get_rainy_forecast_tomorrow()
 
         if not forecast or not forecast_symbol:
             await interaction.response.send_message(
@@ -49,11 +48,11 @@ class RainyForecast(commands.Cog):
 
     # Daily rain check
     # @tasks.loop(seconds=5)
-    @tasks.loop(time=config.get_notify_time())
+    @tasks.loop(time=config.app_config.notify_time)
     async def rain_check_loop(self):
         # Sends a rainy forecast (if any) to the target channel
         logger.info("Executing daily rain check...")
-        forecast, forecast_symbol = self._get_rainy_forecast()
+        forecast, forecast_symbol = self._get_rainy_forecast_tomorrow()
         if forecast is None or forecast_symbol is None:
             return
         embed = discord_messages.rainy_weather_forecast_tomorrow(
@@ -69,19 +68,16 @@ class RainyForecast(commands.Cog):
         logger.info("Rain check loop waiting for bot to be ready...")
         await self.bot.wait_until_ready()
 
-    def _get_rainy_forecast(self):
-        # Get start of day in local time
-        local_start_of_day = to_local_time(
-            datetime.utcnow(), self.bot.config.time_zone
-        ).replace(hour=0, minute=0, second=0, microsecond=0)
-        local_start_of_day_tomorrow = local_start_of_day + timedelta(days=1)
+    def get_user_current_time(self):
+        return time_utils.now(self.bot.config.time_zone)
 
-        # Convert local day to utc period
-        period_start = to_utc(local_start_of_day_tomorrow)
-        period_end = period_start + timedelta(days=1)
-        time_period = TimePeriod(start=period_start, end=period_end)
+    def _get_rainy_forecast_tomorrow(self):
+        user_current_time = self.get_user_current_time()
+        time_period = TimePeriod.from_full_days(
+            current_time=user_current_time + timedelta(days=1), num_days=1
+        )
+        time_period = time_period.as_utc()
 
-        logger.info(f"Getting rainy forecast for UTC period: {time_period}")
         query = RainyForecastPeriodQuery(
             time_period=time_period,
             coordinates=Coordinates(lat=self.bot.config.lat, lon=self.bot.config.lon),
@@ -89,17 +85,15 @@ class RainyForecast(commands.Cog):
         forecast = self.bot.container.weather_service.get_rainy_forecast(query)
 
         if not forecast:
-            logger.info(
-                "No rainy forecast found for: "
-                + str(local_start_of_day_tomorrow.date())
-            )
             return None, None
-        else:
-            logger.info(
-                "Rainy forecast found for: " + str(local_start_of_day_tomorrow.date())
-            )
+
+        symbol_time = time_utils.as_utc(
+            time_utils.at_hour(8, user_current_time)
+        ) + timedelta(days=1)
+
+        # Get forecast symbol as of 8am tomorrow (user time) to best describe the weather of the day
         forecast_symbol = self.bot.container.weather_service.get_forecast_symbol_code(
-            from_time=local_start_of_day_tomorrow + timedelta(hours=8),
+            from_time=symbol_time,
             coordinates=query.coordinates,
         )
 

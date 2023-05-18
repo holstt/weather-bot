@@ -106,8 +106,9 @@ class WeatherService:
             rainy_forecasts.append(forecast_hour_model)
 
         if not rainy_forecasts:
-            return None
+            logger.info("No rainy forecast found")
 
+        logger.info(f"Found {len(rainy_forecasts)} rainy forecast hours")
         return rainy_forecasts
 
     def _get_forecast_at_time(

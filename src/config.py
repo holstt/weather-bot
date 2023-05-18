@@ -12,22 +12,6 @@ from src import time_utils
 
 logger = logging.getLogger(__name__)
 
-_guild_id = None
-_notify_time = None
-
-
-# Global variables which should be accessible from cogs
-def get_guild_id():
-    if _guild_id is None:
-        raise Exception("Guild ID not set")
-    return _guild_id
-
-
-def get_notify_time():
-    if _notify_time is None:
-        raise Exception("Notify time not set")
-    return _notify_time
-
 
 class AppConfig(BaseSettings):
     bot_token: str = Field(..., env="BOT_TOKEN")
@@ -68,10 +52,7 @@ def load_config() -> AppConfig:
         )
 
     config = AppConfig()  # type: ignore
-
-    # Set guild id for all to access when command syncing
-    global _guild_id
-    global _notify_time
-    _guild_id = config.target_guild_id
-    _notify_time = config.notify_time
     return config
+
+
+app_config = load_config()

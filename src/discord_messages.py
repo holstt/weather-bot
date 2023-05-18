@@ -35,7 +35,7 @@ def rainy_weather_forecast_tomorrow(
     location: geopy.Location = geolocator.reverse(f"{forecast.coordinates.lat}, {forecast.coordinates.lon}")  # type: ignore
     city: str = _extract_city(location) or "Unknown"
 
-    updated_at_local = time_utils.to_local_time(forecast.updated_at, user_time_zone)
+    updated_at_local = time_utils.as_time_zone(forecast.updated_at, user_time_zone)
 
     weather_code_line = f"**Summary:** {forecast_symbol}\n"
     forecast_message = _create_rainy_hours_message_simple(
@@ -81,7 +81,7 @@ def _create_rainy_hours_message_simple(
     rainy_hours_message = seperation_line
     prev_hour: datetime | None = None
     for forecast_hour in forecast_hours:
-        forecast_time_local = time_utils.to_local_time(
+        forecast_time_local = time_utils.as_time_zone(
             forecast_hour.time, user_time_zone
         )
         forecast_time_formatted_str = forecast_time_local.strftime("%H:%M")
