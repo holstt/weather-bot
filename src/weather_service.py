@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+import logging
+from datetime import datetime
 from typing import Iterator
 
 from src.dtos.yr_complete_response import (
@@ -14,6 +15,9 @@ from src.models import (
     TimePeriod,
 )
 from src.weather_client import YrWeatherClient
+
+logger = logging.getLogger(__name__)
+
 
 # TODO: Implement specification pattern for filtering forecasts
 # class Specification(ABC):
@@ -33,7 +37,7 @@ class WeatherService:
 
     # Get forecast symbol code that represents the weather for the next 12 hours from a given time.
     def get_forecast_symbol_code(self, from_time: datetime, coordinates: Coordinates):
-        print(f"Getting forecast symbol code for {coordinates} at {from_time}")
+        logger.info(f"Getting forecast symbol code for {coordinates} at {from_time}")
         json = self._client.get_complete_forecast(coordinates.lat, coordinates.lon)
         dto = YrCompleteResponse.from_dict(json)
         forecast = self._get_forecast_at_time(from_time, dto.properties.timeseries)
@@ -43,7 +47,7 @@ class WeatherService:
     def get_rainy_forecast(
         self, query: RainyForecastPeriodQuery
     ) -> RainyForecastPeriod | None:
-        print(f"Getting rainy forecast for {query}")
+        logger.info(f"Getting rainy forecast for {query}")
 
         json = self._client.get_complete_forecast(
             query.coordinates.lat, query.coordinates.lon
@@ -121,7 +125,7 @@ class WeatherService:
         weather_data: YrCompleteResponse,
         time_period: TimePeriod,
     ) -> Iterator[ForecastTimeStep]:
-        print(
+        logger.info(
             f"Returning forecasts between period_start: {time_period.start}, and period_end: {time_period.end}"
         )
         for forecast_hour_entry in weather_data.properties.timeseries:

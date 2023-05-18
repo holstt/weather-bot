@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 
 import discord
@@ -10,11 +11,13 @@ from src.bot import WeatherBot
 from src.models import Coordinates, RainyForecastPeriodQuery, TimePeriod
 from src.time_utils import to_local_time, to_utc
 
+logger = logging.getLogger(__name__)
+
 
 class RainyForecast(commands.Cog):
     def __init__(self, bot: WeatherBot):
         self.bot = bot
-        print(
+        logger.info(
             f"Scheduling rain check. Will check for rainy forecast (tomorrow), every day at {self.bot.config.notify_time} UTC"
         )
         self.rain_check_loop.start()
@@ -49,7 +52,7 @@ class RainyForecast(commands.Cog):
     @tasks.loop(time=config.get_notify_time())
     async def rain_check_loop(self):
         # Sends a rainy forecast (if any) to the target channel
-        print("Executing daily rain check...")
+        logger.info("Executing daily rain check...")
         forecast, forecast_symbol = self._get_rainy_forecast()
         if forecast is None or forecast_symbol is None:
             return
@@ -59,11 +62,11 @@ class RainyForecast(commands.Cog):
         if self.bot.target_channel is None:
             return  # XXX: Unexpected
         await self.bot.target_channel.send(embed=embed)
-        print("Notification sent")
+        logger.info("Notification sent")
 
     @rain_check_loop.before_loop
     async def before_rain_check_loop(self):
-        print("Rain check loop waiting for bot to be ready...")
+        logger.info("Rain check loop waiting for bot to be ready...")
         await self.bot.wait_until_ready()
 
     def _get_rainy_forecast(self):
@@ -78,7 +81,7 @@ class RainyForecast(commands.Cog):
         period_end = period_start + timedelta(days=1)
         time_period = TimePeriod(start=period_start, end=period_end)
 
-        print(f"Getting rainy forecast for UTC period: {time_period}")
+        logger.info(f"Getting rainy forecast for UTC period: {time_period}")
         query = RainyForecastPeriodQuery(
             time_period=time_period,
             coordinates=Coordinates(lat=self.bot.config.lat, lon=self.bot.config.lon),
@@ -86,13 +89,13 @@ class RainyForecast(commands.Cog):
         forecast = self.bot.container.weather_service.get_rainy_forecast(query)
 
         if not forecast:
-            print(
+            logger.info(
                 "No rainy forecast found for: "
                 + str(local_start_of_day_tomorrow.date())
             )
             return None, None
         else:
-            print(
+            logger.info(
                 "Rainy forecast found for: " + str(local_start_of_day_tomorrow.date())
             )
         forecast_symbol = self.bot.container.weather_service.get_forecast_symbol_code(

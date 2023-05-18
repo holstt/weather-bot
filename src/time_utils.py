@@ -1,5 +1,8 @@
+import logging
 from datetime import datetime, time, timezone
 from zoneinfo import ZoneInfo
+
+logger = logging.getLogger(__name__)
 
 
 def to_local_time(dt: datetime, zone_info: ZoneInfo):

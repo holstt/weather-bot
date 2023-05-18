@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
@@ -8,6 +9,8 @@ from geopy.geocoders import Nominatim  # type: ignore
 
 from src import time_utils
 from src.models import RainyForecastHour, RainyForecastPeriod
+
+logger = logging.getLogger(__name__)
 
 # Messages converting model -> discord embed
 

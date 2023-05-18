@@ -1,3 +1,4 @@
+import logging
 import os
 import traceback
 from pathlib import Path
@@ -8,6 +9,9 @@ from discord import TextChannel
 from discord.ext import commands
 
 from src.container import Container
+
+logger = logging.getLogger(__name__)
+
 
 SYNC_COMMANDS = True  # Set to false for faster startup, but commands will not be synced with discord
 cogs_dir = Path("./src/cogs")
@@ -37,7 +41,7 @@ class WeatherBot(commands.Bot):
             self.config.target_channel_id
         )
         ready_msg = f"Bot is online ({self.user})"
-        print(ready_msg)
+        logger.info(ready_msg)
         await self.dev_channel.send(ready_msg)
 
     # Send any errors to dev channel
@@ -49,11 +53,11 @@ class WeatherBot(commands.Bot):
 
     async def _sync_commands(self):
         if SYNC_COMMANDS:
-            print("Syncing commands with discord...")
+            logger.info("Syncing commands with discord...")
             # await tree.sync() # This takes a while, as it syncs with all guilds
             # Sync with specified target guild to update slash commands instantly
             await self.tree.sync(guild=discord.Object(id=self.config.target_guild_id))
-            print("Commands synced")
+            logger.info("Commands synced")
 
     def _get_text_channel_or_raise(self, channel_id: int) -> TextChannel:
         channel = self.get_channel(channel_id)
@@ -64,12 +68,12 @@ class WeatherBot(commands.Bot):
         return channel
 
     async def _load_cogs(self):
-        print(f"Loading cogs from: {cogs_dir.resolve()}")
+        logger.info(f"Loading cogs from: {cogs_dir.resolve()}")
         for filename in os.listdir(cogs_dir):
             if filename.endswith(".py"):
                 await self.load_extension(f"{cogs_base_path}.{filename[:-3]}")
-                print(f"Cog loaded: {filename[:-3]}")
+                logger.info(f"Cog loaded: {filename[:-3]}")
 
     def _print_commands(self):
         for command in self.tree.get_commands():
-            print(command.name)
+            logger.info(command.name)

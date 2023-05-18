@@ -1,14 +1,16 @@
 import argparse
+import logging
 from datetime import time
 from pathlib import Path
 from typing import Any
 from zoneinfo import ZoneInfo
 
-# import time
 from dotenv import load_dotenv
 from pydantic import BaseSettings, Field, validator  # type: ignore
 
 from src import time_utils
+
+logger = logging.getLogger(__name__)
 
 _guild_id = None
 _notify_time = None
@@ -47,6 +49,7 @@ class AppConfig(BaseSettings):
 
 
 def load_config() -> AppConfig:
+    logger.info("Loading config...")
     ap = argparse.ArgumentParser()
     ap.add_argument(
         "-e", "--env", required=False, help="Path of .env file", default=".env"
@@ -55,12 +58,12 @@ def load_config() -> AppConfig:
 
     env_path = Path(args["env"]).absolute()
     if Path(env_path).exists():
-        print(f"env file found: '{env_path}'")
+        logger.info(f"env file found: '{env_path}'")
         # Load into environment
         load_dotenv(dotenv_path=env_path)
     else:
         # Assume set in environment
-        print(
+        logger.info(
             f"No env file found at '{env_path}'. Assuming environment variables are set."
         )
 

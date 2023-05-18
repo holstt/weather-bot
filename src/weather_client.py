@@ -1,6 +1,9 @@
+import logging
 from typing import Any
 
 from requests_cache import CachedSession
+
+logger = logging.getLogger(__name__)
 
 
 # Fetches weather data from the YR API (https://developer.yr.no/featured-products/forecast/)
@@ -32,7 +35,7 @@ class YrWeatherClient:
         response = self.session.get(url, params=location_query)  # type: ignore
         response.raise_for_status()
 
-        print(f"YR API response retrieved from cache: {response.from_cache}")
+        logger.info(f"YR API response retrieved from cache: {response.from_cache}")
 
         # Get json and convert to DTO
         json: dict[str, Any] = response.json()
