@@ -49,16 +49,16 @@ cd weather-bot
 
 The bot is configured using environment variables, which can be specified in a `.env` file or set directly in the environment. If using a `.env` file, you can use the `./example.env` file as a template and rename it to `.env`.
 
-| Environment Variable | Type    | Description                                                                                                                          | Example         |
-| -------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------ | --------------- |
-| `BOT_TOKEN`          | String  | Discord API token                                                                                                                    | `ABC1234XYZ987` |
-| `LAT`                | Float   | Default latitude                                                                                                                     | `11.22`         |
-| `LON`                | Float   | Default longitude                                                                                                                    | `33.44`         |
-| `TIME_ZONE`          | String  | IANA time zone of guild. See [this list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for all available time zones. | `Europe/Berlin` |
-| `NOTIFY_TIME_OF_DAY` | String  | Time of day to recieve alert iff it is going to rain tomorrow. Format: `HH:MM`                                                       | `21:30`         |
-| `TARGET_GUILD_ID`    | Integer | Guild ID of the guild to send the weather forecast to                                                                                | `1234567890`    |
-| `TARGET_CHANNEL_ID`  | Integer | Channel to get notified about weather forecasts. Can be the same as `DEV_CHANNEL_ID`                                                 | `1234567890`    |
-| `DEV_CHANNEL_ID`     | Integer | Channel to get notified when bot is online and when errors occur. Can be the same as TARGET_CHANNEL_ID                               | `1234567890`    |
+| Environment Variable | Description                                                                                                                          | Example         | Type    |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | --------------- | ------- |
+| `BOT_TOKEN`          | Discord API token                                                                                                                    | `ABC1234XYZ987` | String  |
+| `LAT`                | Default latitude                                                                                                                     | `11.22`         | Float   |
+| `LON`                | Default longitude                                                                                                                    | `33.44`         | Float   |
+| `TIME_ZONE`          | IANA time zone of guild. See [this list](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for all available time zones. | `Europe/Berlin` | String  |
+| `NOTIFY_TIME_OF_DAY` | Time of day to recieve alert iff it is going to rain tomorrow. Format: `HH:MM`                                                       | `21:30`         | String  | 
+| `TARGET_GUILD_ID`    | Guild ID of the guild to send the weather forecast to                                                                                | `1234567890`    | Integer | 
+| `TARGET_CHANNEL_ID`  | Channel to get notified about weather forecasts. Can be the same as `DEV_CHANNEL_ID`                                                 | `1234567890`    | Integer | 
+| `DEV_CHANNEL_ID`     | Channel to get notified when bot is online and when errors occur. Can be the same as TARGET_CHANNEL_ID                               | `1234567890`    | Integer | 
 
 ## Running Locally 💻
 
