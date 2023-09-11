@@ -1,6 +1,9 @@
 # weather-bot
 
 [![build](https://github.com/holstt/weather-bot/actions/workflows/build.yaml/badge.svg)](https://github.com/holstt/weather-bot/actions/workflows/build.yaml)
+[![python](https://img.shields.io/badge/Python-3.10-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org)
+[![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
+
 
 Discord bot alerting you if it's going to rain tomorrow 🌧
 
@@ -32,7 +35,6 @@ Discord bot alerting you if it's going to rain tomorrow 🌧
 ## Requirements
 
 -   [Discord bot token](https://discord.com/developers/docs/intro)
--   [YR API key](https://developer.yr.no/)
 -   If running locally: The Poetry package manager, see [installation instructions](https://python-poetry.org/docs/#installation)
 -   If running with Docker: [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
 
@@ -108,7 +110,7 @@ docker-compose up -d
 
 #### Cache
 
-All requests to the YR API are cached with respect to their individual `Expire` response header to comply with the YR TOS. As such, muliple forecast requests for the same coordinate will only result in a single http request until the response expires (typically 0.5 hour it seems). The cache will be stored as a sqlite db at `./data/http_cache.sqlite`.
+All requests to the YR API are cached with respect to their individual `Expire` response header to comply with the [YR TOS](https://developer.yr.no/doc/TermsOfService/). As such, multiple forecast requests for the same coordinate will only result in a single http request until the response expires (typically 0.5 hour it seems). The cache will be stored as a SQLite database at `./data/http_cache.sqlite`.
 
 #### Git hooks
 
