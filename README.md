@@ -4,39 +4,40 @@
 [![python](https://img.shields.io/badge/Python-3.10-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org)
 [![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
 
-
 Discord bot alerting you if it's going to rain tomorrow 🌧
 
 <img src="docs/rainy_forecast_message.png" width=40%>
 
 ## Features
 
--   Daily notification if (and only if) it's going to rain tomorrow including period and precipitation amount (best estimate). Be prepared for your daily commute and when to plan for outdoor activities! 🏃🚴🤸
--   Customize the notification to your needs:
-    -   Set preferred time of day for the daily alert
-    -   Specify the exact location for which to retrieve weather data, using latitude and longitude.
--   Weather data from any location provided by the [YR API](https://developer.yr.no/)
--   Manually check for rain tomorrow using `/rain_check` command
+- Daily notification if (and only if) it's going to rain tomorrow including period and precipitation amount (best estimate). Be prepared for your daily commute and when to plan for outdoor activities! 🏃🚴🤸
+- Customize the notification to your needs:
+  - Set preferred time of day for the daily alert
+  - Specify the exact location for which to retrieve weather data, using latitude and longitude.
+- Weather data from any location provided by the [YR API](https://developer.yr.no/)
+- Manually check for rain tomorrow using `/rain_check` command
 
 #### Todo:
 
--   [ ] Command `/rain_check <period>`: Show rainy hours for a given period
-    -   Examples: `/rain_check today`, `/rain_check tomorrow`, `/rain_check week`, `/rain_check 3d`
--   [ ] Set up weather alerts: Get notified if a weather metric gets above/below a certain threshold within a rolling time window
-    -   Example: Get notified if the temperature drops below 0°C within the next 24 hours
-    -   Example: Get notified about the 3-hour window having the lowest wind speeds within the next 24 hours to help plan the ideal time to go for a bike ride
--   [ ] Charts: Show detailed weather forecast for a given period as a chart
--   [ ] Weekly weather forecast: Get a weekly weather forecast with custom highlights to plan for the week ahead
--   [ ] Customize rainy hour alert
-    -   [ ] Require minimum precipitation amount
-    -   [ ] Require minimum precipitation probability
-    -   [ ] Choose which precipitation metrics to include in the alert: best estimate, min, max, probability
+- [ ] Command `/rain_check <period>`: Show rainy hours for a given period
+  - Examples: `/rain_check today`, `/rain_check tomorrow`, `/rain_check week`, `/rain_check 3d`
+- [ ] Set up weather alerts: Get notified if a weather metric gets above/below a certain threshold within a rolling time window
+  - Example: Get notified if the temperature drops below 0°C within the next 24 hours
+  - Example: Get notified about the 3-hour window having the lowest wind speeds within the next 24 hours to help plan the ideal time to go for a bike ride
+- [ ] Charts: Show detailed weather forecast for a given period as a chart
+- [ ] Weekly weather forecast: Get a weekly weather forecast with custom highlights to plan for the week ahead
+- [ ] Customize rainy hour alert
+  - [ ] Require minimum precipitation amount
+  - [ ] Require minimum precipitation probability
+  - [ ] Choose which precipitation metrics to include in the alert: best estimate, min, max, probability
 
 ## Requirements
 
--   [Discord bot token](https://discord.com/developers/docs/intro)
--   If running locally: The Poetry package manager, see [installation instructions](https://python-poetry.org/docs/#installation)
--   If running with Docker: [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
+- [Discord bot](https://discord.com/developers/docs/intro) with the following permissions:
+  - `Send Messages`
+  - `Use Slash Commands`
+- If running locally: The Poetry package manager, see [installation instructions](https://python-poetry.org/docs/#installation)
+- If running with Docker: [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
 
 ## Getting Started
 
