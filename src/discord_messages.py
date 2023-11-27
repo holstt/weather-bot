@@ -15,7 +15,8 @@ logger = logging.getLogger(__name__)
 # Messages converting model -> discord embed
 
 RAIN_EMOJI = "🌧"
-SNOW_EMOJI = "❄"
+SNOW_EMOJI = "🌨️"
+# SNOW_EMOJI = "❄"
 SLEET_EMOJI = "🌨"
 CLOUD_EMOJI = "☁"
 SHOWER_EMOJI = "🚿"
@@ -123,13 +124,13 @@ def _precipitation_symbol_to_emoji(symbol: str):
     match symbol:
         case _ if "lightrain" in symbol:
             return RAIN_EMOJI * 1
-        case _ if "heavyrain":
+        case _ if "heavyrain" in symbol:
             return RAIN_EMOJI * 3
         case _ if "rain" in symbol:
             return RAIN_EMOJI * 2
         case _ if "lightsnow" in symbol:
             return SNOW_EMOJI * 1
-        case _ if "heavysnow":
+        case _ if "heavysnow" in symbol:
             return SNOW_EMOJI * 3
         case _ if "snow" in symbol:
             return SNOW_EMOJI * 2
